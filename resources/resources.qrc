@@ -1,0 +1,54 @@
+<RCC>
+    <qresource prefix="/local_plugins">
+        <file alias="install.py">../scripts/local_plugins/install.py</file>
+        <file alias="runner.py">../scripts/local_plugins/runner.py</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="app.ico">app.ico</file>
+        <file alias="app_icon_256.png">app_icon_256.png</file>
+        <file alias="app.svg">app.svg</file>
+        <file alias="ui/arrow.svg">icons/arrow.svg</file>
+        <file alias="ui/capture.svg">icons/capture.svg</file>
+        <file alias="ui/char.svg">icons/char.svg</file>
+        <file alias="ui/close.svg">icons/close.svg</file>
+        <file alias="ui/confirm.svg">icons/confirm.svg</file>
+        <file alias="ui/copy.svg">icons/copy.svg</file>
+        <file alias="ui/copytext.svg">icons/copytext.svg</file>
+        <file alias="ui/ellipse.svg">icons/ellipse.svg</file>
+        <file alias="ui/formula.svg">icons/formula.svg</file>
+        <file alias="ui/gif.svg">icons/gif.svg</file>
+        <file alias="ui/hotkey.svg">icons/hotkey.svg</file>
+        <file alias="ui/layers.svg">icons/layers.svg</file>
+        <file alias="ui/markdown.svg">icons/markdown.svg</file>
+        <file alias="ui/micro.svg">icons/micro.svg</file>
+        <file alias="ui/more.svg">icons/more.svg</file>
+        <file alias="ui/mosaic.svg">icons/mosaic.svg</file>
+        <file alias="ui/ocr.svg">icons/ocr.svg</file>
+        <file alias="ui/pencil.svg">icons/pencil.svg</file>
+        <file alias="ui/pin.svg">icons/pin.svg</file>
+        <file alias="ui/plugin.svg">icons/plugin.svg</file>
+        <file alias="ui/rect.svg">icons/rect.svg</file>
+        <file alias="ui/redo.svg">icons/redo.svg</file>
+        <file alias="ui/save.svg">icons/save.svg</file>
+        <file alias="ui/screen.svg">icons/screen.svg</file>
+        <file alias="ui/scrollh.svg">icons/scrollh.svg</file>
+        <file alias="ui/scrollv.svg">icons/scrollv.svg</file>
+        <file alias="ui/settings.svg">icons/settings.svg</file>
+        <file alias="ui/snap.svg">icons/snap.svg</file>
+        <file alias="ui/text.svg">icons/text.svg</file>
+        <file alias="ui/theme.svg">icons/theme.svg</file>
+        <file alias="ui/translate.svg">icons/translate.svg</file>
+        <file alias="ui/undo.svg">icons/undo.svg</file>
+    </qresource>
+    <qresource prefix="/ui">
+        <file alias="check-dark.png">ui/check-dark.png</file>
+        <file alias="check-light.png">ui/check-light.png</file>
+        <file alias="check-white.png">ui/check-white.png</file>
+        <file alias="down-dark.png">ui/down-dark.png</file>
+        <file alias="down-light.png">ui/down-light.png</file>
+        <file alias="down-white.png">ui/down-white.png</file>
+        <file alias="up-dark.png">ui/up-dark.png</file>
+        <file alias="up-light.png">ui/up-light.png</file>
+        <file alias="up-white.png">ui/up-white.png</file>
+    </qresource>
+</RCC>

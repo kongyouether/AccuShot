@@ -1,0 +1,131 @@
+# Build directories
+build/
+build-*/
+bin/
+out/
+dist/
+
+# C++ / Visual Studio / Ninja artifacts
+*.exe
+*.dll
+*.so
+*.dylib
+*.lib
+*.a
+*.obj
+*.o
+*.ilk
+*.pdb
+*.exp
+*.res
+*.ninja
+.ninja_*
+ninja_log
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+
+# Qt artifacts
+*.moc
+moc_*.cpp
+ui_*.h
+qrc_*.cpp
+*_autogen/
+.rcc/
+.qmake.stash
+
+# IDE and editor files
+.vs/
+*.sln
+*.vcxproj*
+.idea/
+.vscode/
+*.user
+.opencode/
+.pi/
+
+# Temporary audio and video assets
+*.wav
+*.mp3
+audio_*/
+temp_*.ps1
+media_kit/*.mp4
+media_kit/*.wav
+media_kit/audio_segments/
+__pycache__/
+*.pyc
+
+# Large OCR models and runtime
+rapidocr/
+RapidOCR-json*
+*.7z
+
+# OS generated files
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# Local UI build history
+.finesse/
+
+# Local credentials (keep only explicitly named example templates)
+.env
+.env.*
+!.env.example
+!.env.sample
+!.env.template
+*api-key*.txt
+*api_key*.txt
+*apikey*.txt
+*secret*.json
+*credentials*.json
+*.pem
+*.key
+*.pfx
+*.p12
+id_rsa
+id_ed25519
+
+# Private desktop captures, OCR output and machine-specific evidence
+/screenshots/
+/docs/evidence/
+/markdown-evidence/
+/ocr-link-*.png
+/tri-link-*.png
+# Curated public README screenshots remain in docs/images/readme/.
+
+# Runtime logs, crash dumps and local databases
+*.log
+*.dmp
+*.mdmp
+*.dump
+*.sqlite
+*.sqlite3
+*.db
+*.bak
+/logs/
+/crashes/
+
+# Downloaded weights, tokenizer data, model/runtime caches and packages
+models/
+.cache/
+.venv/
+venv/
+__pypackages__/
+node_modules/
+*.onnx
+*.safetensors
+*.gguf
+*.ggml
+*.pt
+*.pth
+*.ckpt
+*.tflite
+*.h5
+*.npz
+*.npy
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+*.whl
