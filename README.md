@@ -30,9 +30,9 @@
 
 ## 下载与运行
 
-**[下载 AccuShot v1.2.1 · Windows x64 便携版](https://github.com/kongyouether/AccuShot/releases/download/v1.2.1/AccuShot-v1.2.1-windows-x64-portable.zip)**
+**[下载 AccuShot v1.2.2 · Windows x64 便携版](https://github.com/kongyouether/AccuShot/releases/download/v1.2.2/AccuShot-v1.2.2-windows-x64-portable.zip)**
 
-[查看 Release 与更新说明](https://github.com/kongyouether/AccuShot/releases/tag/v1.2.1) · [下载 SHA256 校验文件](https://github.com/kongyouether/AccuShot/releases/download/v1.2.1/SHA256SUMS.txt)
+[查看 Release 与更新说明](https://github.com/kongyouether/AccuShot/releases/tag/v1.2.2) · [下载 SHA256 校验文件](https://github.com/kongyouether/AccuShot/releases/download/v1.2.2/SHA256SUMS.txt)
 
 1. 下载 ZIP，**完整解压**到有写入权限的目录。
 2. 双击 `AccuShot.exe`，在任务栏右下角托盘找到程序。
@@ -44,7 +44,7 @@ AI 模型不随包提供，可在设置中按需安装；部分本地插件需�
 
 > “便携”表示免安装、解压运行。设置仍保存在 Windows 当前用户配置中，日志位于 `%LOCALAPPDATA%\AccuShot\AccuShot\logs`；首次运行默认开启自启动，可在设置中关闭。更新前请从托盘退出旧版本。
 
-> 从 v1.2.0 升级时，请先记录需要保留的设置、关闭旧版自启动并退出。v1.2.1 不自动读取旧品牌配置，需要重新配置账号；已经使用 AccuShot 标识的设置与凭据继续保留。详见[项目标识与升级说明](docs/brand-identity.md)。
+> 从 v1.2.0 升级时，请先记录需要保留的设置、关闭旧版自启动并退出。从 v1.2.1 起不再自动读取旧品牌配置，需要重新配置账号；已经使用 AccuShot 标识的设置与凭据继续保留。详见[项目标识与升级说明](docs/brand-identity.md)。
 
 <details>
 <summary>核对下载文件的 SHA256</summary>
@@ -52,7 +52,7 @@ AI 模型不随包提供，可在设置中按需安装；部分本地插件需�
 下载 ZIP 和 `SHA256SUMS.txt` 到同一文件夹，在 PowerShell 中执行：
 
 ```powershell
-Get-FileHash .\AccuShot-v1.2.1-windows-x64-portable.zip -Algorithm SHA256
+Get-FileHash .\AccuShot-v1.2.2-windows-x64-portable.zip -Algorithm SHA256
 Get-Content .\SHA256SUMS.txt
 ```
 
@@ -133,7 +133,7 @@ Get-Content .\SHA256SUMS.txt
 
 1. **启动 `AccuShot.exe`**，程序常驻系统托盘；右键托盘图标进入设置。
 2. **按 `F1` 开始截图**，移动鼠标查看候选框，用滚轮切换大小，或直接拖拽框选。
-3. **按 `Enter` 复制截图**，按 `F3` 将选区贴到桌面，或从工具栏选择标注、识别、翻译等操作。
+3. **在选区内双击或按 `Enter` 复制截图**（添加文字或图形后也可双击），按 `F3` 将选区贴到桌面，或从工具栏选择标注、识别、翻译等操作。
 4. **配置识别能力**：Windows OCR 为系统内置方案；其他本地方案先在「设置 → 插件与模型」安装所需插件，再到文字识别、翻译、公式识别或 Markdown 页选择。
 5. **需要在线处理时**，先在「设置 → 在线账号」配置服务地址和密钥，再在对应功能页选择模型。图片任务还需服务与模型支持图片输入。
 
@@ -159,6 +159,7 @@ Get-Content .\SHA256SUMS.txt
 | 选区确定前 | 切换更大 / 更小候选 | 滚轮向上 / 向下 |
 | 选区确定前 | 按推荐顺序切换候选 | `Tab` / `Shift + Tab` |
 | 选区确定前 | 精细扩大 / 缩小候选框 | `Ctrl + 滚轮向上 / 向下` |
+| 截图中 | 完成并复制截图 | 选区内双击左键（文字输入框内双击仍用于选词） |
 | 截图中 | 识别文字 | `Ctrl + O` |
 | 截图中 | 撤销标注 | `Ctrl + Z` |
 | 截图中 | 贴图 / 保存 / 复制截图 | `F3` / `Ctrl + S` / `Enter` |

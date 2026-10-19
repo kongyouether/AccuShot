@@ -77,6 +77,8 @@ SnippingOverlay::SnippingOverlay(QWidget* parent)
     // 挂载原位所见即所得文字输入框 (参考 Snipaste / PixPin)
     m_textEditor = new InPlaceTextEditor(this);
     m_textEditor->hide();
+    m_textEditor->installEventFilter(this);
+    m_textEditor->viewport()->installEventFilter(this);
     connect(m_textEditor, &InPlaceTextEditor::editingCommitted, this, [this](const QPoint& pos, const QString& text) {
         m_annotationMgr.addItem(std::make_shared<TextAnnotation>(pos, text, m_textEditor->textColor(), m_textEditor->font()));
         update();
@@ -705,12 +707,30 @@ void SnippingOverlay::mousePressEvent(QMouseEvent* event)
     }
 }
 
+bool SnippingOverlay::eventFilter(QObject* watched, QEvent* event)
+{
+    // Text mode opens an empty editor on the first click of a double-click.
+    // Forward its second click, while keeping word selection in nonempty editors.
+    if ((watched == m_textEditor || watched == m_textEditor->viewport()) &&
+        event->type() == QEvent::MouseButtonDblClick && m_textEditor->toPlainText().isEmpty()) {
+        const auto* mouse = static_cast<QMouseEvent*>(event);
+        const QPoint position = static_cast<QWidget*>(watched)->mapTo(this, mouse->position().toPoint());
+        QMouseEvent forwarded(event->type(), QPointF(position), mouse->globalPosition(),
+                              mouse->button(), mouse->buttons(), mouse->modifiers());
+        forwarded.setAccepted(false);
+        mouseDoubleClickEvent(&forwarded);
+        if (forwarded.isAccepted()) return true;
+    }
+    return QWidget::eventFilter(watched, event);
+}
+
 void SnippingOverlay::mouseDoubleClickEvent(QMouseEvent* event)
 {
     qInfo() << "[CaptureInput] doubleClick state=" << int(m_state);
     if (event->button() == Qt::LeftButton && m_state == SnippingState::Selected &&
-        m_currentTool == ToolAction::Cancel && m_selectionRect.normalized().contains(event->pos()) &&
-        !m_textEditor->isVisible() && !m_singleCharEditor->isVisible()) {
+        m_selectionRect.normalized().contains(event->pos()) &&
+        (!m_textEditor->isVisible() || m_textEditor->toPlainText().isEmpty()) && !m_singleCharEditor->isVisible()) {
+        m_textEditor->hide();
         triggerConfirmAction();
         event->accept();
         return;
@@ -1007,17 +1027,17 @@ void SnippingOverlay::mouseReleaseEvent(QMouseEvent* event)
             update();
         } else if (m_state == SnippingState::Selected) {
             if (m_isDrawingAnnotation) {
-                if (m_currentTool == ToolAction::Rect) {
+                if (m_currentTool == ToolAction::Rect && m_annotStartPos != event->pos()) {
                     m_annotationMgr.addItem(std::make_shared<RectAnnotation>(
                         QRect(m_annotStartPos, event->pos()).normalized(), m_annotColor, m_annotStrokeWidth));
-                } else if (m_currentTool == ToolAction::Arrow) {
+                } else if (m_currentTool == ToolAction::Arrow && m_annotStartPos != event->pos()) {
                     m_annotationMgr.addItem(std::make_shared<ArrowAnnotation>(
                         m_annotStartPos, event->pos(), m_annotColor, m_annotStrokeWidth));
                 } else if (m_currentTool == ToolAction::Pencil) {
-                    if (m_currentPencil) {
+                    if (m_currentPencil && m_currentPencil->hasStroke()) {
                         m_annotationMgr.addItem(m_currentPencil);
-                        m_currentPencil.reset();
                     }
+                    m_currentPencil.reset();
                 } else if (m_currentTool == ToolAction::Mosaic) {
                     QRect mosaicRect = QRect(m_annotStartPos, event->pos()).normalized();
                     if (mosaicRect.width() > 3 && mosaicRect.height() > 3) {

@@ -65,6 +65,7 @@ signals:
     void pinRequested(const QPixmap& croppedPixmap, const QRect& screenPos);
 
 protected:
+    bool eventFilter(QObject* watched, QEvent* event) override;
     void paintEvent(QPaintEvent* event) override;
     void hideEvent(QHideEvent* event) override;
     void mousePressEvent(QMouseEvent* event) override;

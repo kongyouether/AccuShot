@@ -93,6 +93,7 @@ public:
         : m_color(color), m_width(width) {}
     AnnotationType type() const override { return AnnotationType::Pencil; }
     void addPoint(const QPoint& pt) { m_points.append(pt); }
+    bool hasStroke() const { return m_points.size() > 1; }
     void draw(QPainter& painter) override {
         if (m_points.size() < 2) return;
         painter.setPen(QPen(m_color, m_width, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));

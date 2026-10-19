@@ -4,6 +4,7 @@
 #include "core/plugin/plugin_manager.h"
 #include <QStandardItemModel>
 #include "ui/overlay/snipping_overlay.h"
+#include "ui/annotation/inplace_text_editor.h"
 #include <QProcess>
 #include <QScopeGuard>
 #include <windows.h>
@@ -24,6 +25,7 @@
 #include "ui/magnifier/magnifier_widget.h"
 #include <QApplication>
 #include <QClipboard>
+#include <QMimeData>
 #include <QTemporaryDir>
 #include <QSettings>
 #include <QTimer>
@@ -1641,6 +1643,94 @@ private slots:
         QTRY_COMPARE(finished.count(),1);QVERIFY(!overlay.isVisible());QCOMPARE(QApplication::activeModalWidget(),&settingsDialog);
         overlay.startSnipping();QApplication::processEvents();QVERIFY(IsWindowEnabled(reinterpret_cast<HWND>(overlay.winId())));
         QTest::keyClick(&overlay,Qt::Key_Escape);QVERIFY(!overlay.isVisible());QCOMPARE(QApplication::activeModalWidget(),&settingsDialog);
+    }
+    void annotatedDoubleClickCopies_data() {
+        QTest::addColumn<int>("tool");QTest::addColumn<bool>("draft");
+        QTest::newRow("rectangle") << int(ToolAction::Rect) << false;
+        QTest::newRow("arrow") << int(ToolAction::Arrow) << false;
+        QTest::newRow("pencil") << int(ToolAction::Pencil) << false;
+        QTest::newRow("pencil-loop") << int(ToolAction::Pencil) << true;
+        QTest::newRow("mosaic") << int(ToolAction::Mosaic) << false;
+        QTest::newRow("text-committed") << int(ToolAction::Text) << false;
+        QTest::newRow("text-draft") << int(ToolAction::Text) << true;
+        QTest::newRow("no-tool") << int(ToolAction::Cancel) << false;
+        QTest::newRow("rectangle-native") << int(ToolAction::Rect) << false;
+        QTest::newRow("text-native") << int(ToolAction::Text) << true;
+    }
+    void annotatedDoubleClickCopies() {
+        QFETCH(int,tool);QFETCH(bool,draft);
+        auto clipboard=std::make_unique<QMimeData>();
+        const auto* previous=QApplication::clipboard()->mimeData();
+        if(previous) for(const auto& format:previous->formats()) clipboard->setData(format,previous->data(format));
+        auto& overlay=SnippingOverlay::instance();
+        const auto cleanup=qScopeGuard([&]{overlay.m_textEditor->hide();overlay.triggerCancelAction();QApplication::clipboard()->setMimeData(clipboard.release());});
+        overlay.m_snapshot.fullSnapshot=QPixmap(900,600);overlay.m_snapshot.fullSnapshot.fill(QColor("#e4edf0"));
+        overlay.m_snapshot.virtualGeometry=QRect(0,0,900,600);overlay.m_snapshot.isValid=true;
+        overlay.setGeometry(overlay.m_snapshot.virtualGeometry);overlay.m_state=SnippingState::Selected;
+        overlay.m_selectionRect=QRect(50,50,700,400);overlay.m_annotationMgr.clear();
+        overlay.m_currentTool=ToolAction(tool);overlay.m_isDrawingAnnotation=false;overlay.m_activeHandle=HandleType::None;
+        overlay.m_textEditor->hide();overlay.m_singleCharEditor->hide();overlay.m_toolbar->hide();overlay.m_magnifier->hide();
+        overlay.show();overlay.activateWindow();overlay.setFocus();QApplication::processEvents();
+        const QImage base=overlay.renderSelectedArea().toImage();
+        if(ToolAction(tool)==ToolAction::Text) {
+            QSettings(QSettings::defaultFormat(),QSettings::UserScope,"AccuShot","AccuShot").setValue("Annotation/TextCommitMode",0);
+            QTest::mouseClick(&overlay,Qt::LeftButton,Qt::NoModifier,QPoint(90,90));
+            QVERIFY(overlay.m_textEditor->isVisible());overlay.m_textEditor->insertPlainText("Copy annotated text");
+            if(!draft) QTest::keyClick(overlay.m_textEditor,Qt::Key_Return);
+        } else if(ToolAction(tool)!=ToolAction::Cancel) {
+            QTest::mousePress(&overlay,Qt::LeftButton,Qt::NoModifier,QPoint(100,100));
+            QMouseEvent move(QEvent::MouseMove,QPointF(250,180),QPointF(overlay.mapToGlobal(QPoint(250,180))),Qt::NoButton,Qt::LeftButton,Qt::NoModifier);
+            QApplication::sendEvent(&overlay,&move);
+            const QPoint end=draft ? QPoint(100,100) : QPoint(250,180);
+            if(draft) {
+                QMouseEvent back(QEvent::MouseMove,QPointF(end),QPointF(overlay.mapToGlobal(end)),Qt::NoButton,Qt::LeftButton,Qt::NoModifier);
+                QApplication::sendEvent(&overlay,&back);
+            }
+            QTest::mouseRelease(&overlay,Qt::LeftButton,Qt::NoModifier,end);
+        }
+        QImage expected=overlay.renderSelectedArea().toImage();
+        const QPoint finishPoint(500,300);
+        QSignalSpy finished(&overlay,&SnippingOverlay::snippingFinished);
+        // Include the first press/release: text mode opens an empty child editor here.
+        const bool native=QString::fromLatin1(QTest::currentDataTag()).endsWith("-native");
+        const auto hwnd=reinterpret_cast<HWND>(overlay.winId());
+        const LPARAM point=MAKELPARAM(qRound(finishPoint.x()*overlay.devicePixelRatioF()),qRound(finishPoint.y()*overlay.devicePixelRatioF()));
+        if(native) {
+            PostMessageW(hwnd,WM_LBUTTONDOWN,MK_LBUTTON,point);PostMessageW(hwnd,WM_LBUTTONUP,0,point);
+            QTest::qWait(50);
+        } else QTest::mouseClick(&overlay,Qt::LeftButton,Qt::NoModifier,finishPoint);
+        if(draft && ToolAction(tool)==ToolAction::Text) {QCOMPARE(overlay.m_annotationMgr.items().size(),1);expected=overlay.renderSelectedArea().toImage();QVERIFY(expected!=base);}
+        if(ToolAction(tool)!=ToolAction::Cancel) QCOMPARE(overlay.m_annotationMgr.items().size(),1);
+        if(native) {
+            PostMessageW(hwnd,WM_LBUTTONDBLCLK,MK_LBUTTON,point);PostMessageW(hwnd,WM_LBUTTONUP,0,point);
+        } else {
+            QWidget* target=overlay.childAt(finishPoint);if(!target)target=&overlay;
+            QTest::mouseDClick(target,Qt::LeftButton,Qt::NoModifier,target->mapFrom(&overlay,finishPoint));
+        }
+        QTRY_COMPARE(finished.count(),1);QVERIFY(!overlay.isVisible());
+        QCOMPARE(qvariant_cast<QPixmap>(finished.first().first()).toImage(),expected);
+        QCOMPARE(QApplication::clipboard()->image().convertToFormat(QImage::Format_ARGB32),expected.convertToFormat(QImage::Format_ARGB32));
+    }
+    void annotationEditorDoubleClickKeepsEditing() {
+        auto& overlay=SnippingOverlay::instance();
+        const auto cleanup=qScopeGuard([&]{overlay.m_textEditor->hide();overlay.triggerCancelAction();});
+        overlay.m_snapshot.fullSnapshot=QPixmap(900,600);overlay.m_snapshot.fullSnapshot.fill(Qt::white);
+        overlay.m_snapshot.virtualGeometry=QRect(0,0,900,600);overlay.m_snapshot.isValid=true;
+        overlay.setGeometry(overlay.m_snapshot.virtualGeometry);overlay.m_state=SnippingState::Selected;
+        overlay.m_selectionRect=QRect(50,50,700,400);overlay.m_annotationMgr.clear();overlay.m_currentTool=ToolAction::Text;
+        overlay.m_toolbar->hide();overlay.m_magnifier->hide();overlay.show();overlay.activateWindow();overlay.setFocus();
+        QTest::mouseClick(&overlay,Qt::LeftButton,Qt::NoModifier,QPoint(100,100));
+        auto* editor=overlay.m_textEditor;editor->insertPlainText("Keep editing");
+        QSignalSpy finished(&overlay,&SnippingOverlay::snippingFinished);
+        auto cursor=editor->textCursor();cursor.setPosition(2);
+        QTest::mouseDClick(editor->viewport(),Qt::LeftButton,Qt::NoModifier,editor->cursorRect(cursor).center());
+        QCOMPARE(finished.count(),0);QVERIFY(overlay.isVisible());QVERIFY(editor->isVisible());
+        QVERIFY(!editor->textCursor().selectedText().isEmpty());QCOMPARE(editor->toPlainText(),QString("Keep editing"));
+        QTest::keyClick(editor,Qt::Key_Return);
+        QTest::mouseDClick(&overlay,Qt::LeftButton,Qt::NoModifier,QPoint(820,500));
+        QCOMPARE(finished.count(),0);QVERIFY(overlay.isVisible());
+        QTest::mouseDClick(&overlay,Qt::RightButton,Qt::NoModifier,QPoint(500,300));
+        QCOMPARE(finished.count(),0);
     }
     void nativeScreenTranslationEntry() {
         if (QGuiApplication::platformName() != "windows") QSKIP("Requires native Windows screenshot overlay");
