@@ -1,11 +1,11 @@
 cmake_minimum_required(VERSION 3.20)
-project(evan_translation_timeout LANGUAGES CXX)
+project(accushot_translation_timeout LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_AUTOMOC ON)
 find_package(Qt6 REQUIRED COMPONENTS Core Network)
-get_filename_component(EVAN_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../.." ABSOLUTE)
-set(TRANSLATION_DIR "${EVAN_ROOT}/src/core/translation")
+get_filename_component(ACCUSHOT_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../.." ABSOLUTE)
+set(TRANSLATION_DIR "${ACCUSHOT_ROOT}/src/core/translation")
 set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${TRANSLATION_DIR}/online_fallback_translator.cpp")
 file(READ "${TRANSLATION_DIR}/online_fallback_translator.cpp" TRANSLATOR_SOURCE)
 # Redirect only the two endpoints; exercise the production worker and its real timers.
@@ -18,7 +18,7 @@ foreach(ENDPOINT IN ITEMS primary fallback)
         set(ORIGINAL_URL "QUrl gtxUrl(\"https://translate.googleapis.com/translate_a/single\");")
     endif()
     string(REPLACE "${ORIGINAL_URL}"
-        "QUrl ${URL_VARIABLE}(QStringLiteral(\"http://127.0.0.1:%1/${ENDPOINT}\").arg(qEnvironmentVariable(\"EVAN_TEST_HTTP_PORT\")));"
+        "QUrl ${URL_VARIABLE}(QStringLiteral(\"http://127.0.0.1:%1/${ENDPOINT}\").arg(qEnvironmentVariable(\"ACCUSHOT_TEST_HTTP_PORT\")));"
         TRANSLATOR_SOURCE "${TRANSLATOR_SOURCE}")
 endforeach()
 option(OLD_TIMEOUT_BUG "Remove primary timer cancellation to detect the stale timeout in this test process" OFF)

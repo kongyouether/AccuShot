@@ -49,7 +49,7 @@ FloatingToolbar::FloatingToolbar(QWidget* parent) : QWidget(parent) {
     m_toolsLayout->setContentsMargins(0, 0, 0, 0);
     m_toolsLayout->setSpacing(3);
     column->addWidget(m_header);
-    QSettings settings(QSettings::defaultFormat(), QSettings::UserScope, "Evan", "Evan");
+    QSettings settings(QSettings::defaultFormat(), QSettings::UserScope, "AccuShot", "AccuShot");
     for (const auto& def : toolbarDefinitions()) {
         if (!def.annotation) continue;
         Properties p;
@@ -219,7 +219,7 @@ void FloatingToolbar::syncProperties() {
 }
 void FloatingToolbar::saveProperties() {
     const auto p = m_propertiesByTool.value(m_activeTool);
-    QSettings settings(QSettings::defaultFormat(), QSettings::UserScope, "Evan", "Evan"); settings.beginGroup("ToolbarProperties/" + toolDefinition(m_activeTool).id);
+    QSettings settings(QSettings::defaultFormat(), QSettings::UserScope, "AccuShot", "AccuShot"); settings.beginGroup("ToolbarProperties/" + toolDefinition(m_activeTool).id);
     settings.setValue("color", p.color); settings.setValue("width", p.width);
     settings.setValue("font", p.font.toString()); settings.setValue("mosaic", p.mosaic);
 }

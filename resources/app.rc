@@ -4,8 +4,8 @@
 #include <windows.h>
 
 VS_VERSION_INFO VERSIONINFO
-FILEVERSION     1,2,0,0
-PRODUCTVERSION  1,2,0,0
+FILEVERSION     1,2,1,0
+PRODUCTVERSION  1,2,1,0
 FILEFLAGSMASK   VS_FFI_FILEFLAGSMASK
 FILEFLAGS       0x0L
 FILEOS          VOS_NT_WINDOWS32
@@ -18,12 +18,12 @@ BEGIN
         BEGIN
             VALUE "CompanyName",      "AccuShot\0"
             VALUE "FileDescription",  "AccuShot 截贴图工具\0"
-            VALUE "FileVersion",      "1.2.0.0\0"
+            VALUE "FileVersion",      "1.2.1.0\0"
             VALUE "InternalName",     "AccuShot.exe\0"
             VALUE "LegalCopyright",   "Copyright (C) 2026 AccuShot. All rights reserved.\0"
             VALUE "OriginalFilename", "AccuShot.exe\0"
             VALUE "ProductName",      "AccuShot\0"
-            VALUE "ProductVersion",   "1.2.0.0\0"
+            VALUE "ProductVersion",   "1.2.1.0\0"
         END
     END
     BLOCK "VarFileInfo"

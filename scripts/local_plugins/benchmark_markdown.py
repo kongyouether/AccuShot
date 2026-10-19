@@ -51,9 +51,9 @@ def main():
     rows = []
     for path in samples():
         stem = f"{args.provider}-{path.stem}"
-        env = dict(os.environ, QT_QPA_PLATFORM="offscreen", QT_QPA_PLATFORM_PLUGIN_PATH="C:/Qt/6.11.1/msvc2022_64/plugins/platforms", EVAN_PLUGIN_OFFLINE_TEST="1",
-                   EVAN_MARKDOWN_LOCAL=args.provider, EVAN_MARKDOWN_IMAGE=str(path),
-                   EVAN_MARKDOWN_OUTPUT=str(OUT / f"{stem}.md"))
+        env = dict(os.environ, QT_QPA_PLATFORM="offscreen", QT_QPA_PLATFORM_PLUGIN_PATH="C:/Qt/6.11.1/msvc2022_64/plugins/platforms", ACCUSHOT_PLUGIN_OFFLINE_TEST="1",
+                   ACCUSHOT_MARKDOWN_LOCAL=args.provider, ACCUSHOT_MARKDOWN_IMAGE=str(path),
+                   ACCUSHOT_MARKDOWN_OUTPUT=str(OUT / f"{stem}.md"))
         env["PATH"] = "C:/Qt/6.11.1/msvc2022_64/bin;" + env["PATH"]
         start = time.perf_counter()
         with (OUT / f"{stem}-process.log").open("w", encoding="utf-8") as log:

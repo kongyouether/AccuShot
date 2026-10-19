@@ -26,14 +26,14 @@ bool TranslationPluginManager::isOfflinePluginReady() const
 
 QString TranslationPluginManager::preferredEnginePreference() const
 {
-    QSettings settings(QSettings::defaultFormat(), QSettings::UserScope, "Evan", "Evan");
+    QSettings settings(QSettings::defaultFormat(), QSettings::UserScope, "AccuShot", "AccuShot");
     // 默认首选离线插件；未安装时自动降级在线
     return settings.value("Translation/Engine", "Online").toString();
 }
 
 void TranslationPluginManager::setPreferredEnginePreference(const QString& pref)
 {
-    QSettings settings(QSettings::defaultFormat(), QSettings::UserScope, "Evan", "Evan");
+    QSettings settings(QSettings::defaultFormat(), QSettings::UserScope, "AccuShot", "AccuShot");
     settings.setValue("Translation/Engine", pref);
     emit engineChanged(activeEngineName(), activeEngineType() == TranslationEngineType::OfflinePlugin);
 }
@@ -158,5 +158,5 @@ QString TranslationPluginManager::pluginDirectory() const
 
 QString TranslationPluginManager::pluginDownloadUrl() const
 {
-    return "https://github.com/duyuanfu/evan-ocr/releases";
+    return "https://github.com/kongyouether/AccuShot/releases";
 }

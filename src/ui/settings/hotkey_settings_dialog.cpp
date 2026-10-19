@@ -286,7 +286,7 @@ void HotkeySettingsDialog::setupUi()
     auto* formulaColumn=qobject_cast<QVBoxLayout*>(qobject_cast<QScrollArea*>(m_recognitionPage)->widget()->layout());
     formulaColumn->insertWidget(0,formula);
     auto* ocr=makeChoice("ocr",OcrManager::instance().preferredEngineType());m_ocrDefault=ocr->choice;m_tabWidget->addTab(choiceScroll(ocr),"文字识别");
-    QSettings taskSettings(QSettings::defaultFormat(),QSettings::UserScope,"Evan","Evan");
+    QSettings taskSettings(QSettings::defaultFormat(),QSettings::UserScope,"AccuShot","AccuShot");
     auto* markdown=makeChoice("markdown",taskSettings.value("Markdown/Provider","rapidocr").toString());
     m_markdownDefault=markdown->choice;m_tabWidget->addTab(choiceScroll(markdown),"Markdown");
     auto refreshEngines=[this]{for(auto* page:m_featureChoices)page->refresh();};
@@ -506,7 +506,7 @@ QWidget* HotkeySettingsDialog::createGeneralTab()
     m_enableSmartSnappingCheck = new SettingsSwitch("启用自动吸附", snapCard);
     m_enableSmartSnappingCheck->setToolTip("开启后鼠标在屏幕上移动时会自动识别窗口与控件轮廓，可按 Tab 切换候选框；关闭后完全自由拖拽框选。");
     snapLayout->addWidget(m_enableSmartSnappingCheck);
-    m_snapMode=new ThemedComboBox(snapCard);m_snapMode->setObjectName("snapMode");m_snapMode->addItem("窗口（默认）","Window");m_snapMode->addItem("元素与控件","Element");m_snapMode->addItem("图像轮廓","Contour");m_snapMode->addItem("智能融合（窗口+元素+轮廓）","Hybrid");snapLayout->addWidget(m_snapMode);
+    m_snapMode=new ThemedComboBox(snapCard);m_snapMode->setObjectName("snapMode");m_snapMode->addItem("窗口","Window");m_snapMode->addItem("元素与控件","Element");m_snapMode->addItem("图像轮廓","Contour");m_snapMode->addItem("智能融合（默认，窗口+元素+轮廓）","Hybrid");snapLayout->addWidget(m_snapMode);
     connect(m_enableSmartSnappingCheck,&QCheckBox::toggled,m_snapMode,&QWidget::setEnabled);
 
     auto* resizeRow = new QHBoxLayout;
@@ -742,10 +742,10 @@ void HotkeySettingsDialog::loadFromConfig()
     else m_themeCombo->setCurrentIndex(0);
     m_resultFontSizeCombo->setCurrentIndex(m_resultFontSizeCombo->findData(ThemeManager::instance().resultFontSize()));
 
-    QSettings settings(QSettings::defaultFormat(), QSettings::UserScope, "Evan", "Evan");
+    QSettings settings(QSettings::defaultFormat(), QSettings::UserScope, "AccuShot", "AccuShot");
     bool enableSnap = settings.value("Snapping/EnableSmartSnapping", true).toBool();
     m_enableSmartSnappingCheck->setChecked(enableSnap);
-    m_snapMode->setCurrentIndex(qMax(0,m_snapMode->findData(settings.value("Snapping/Mode","Window"))));
+    m_snapMode->setCurrentIndex(qMax(0,m_snapMode->findData(settings.value("Snapping/Mode","Hybrid"))));
     m_snapMode->setEnabled(enableSnap);
 
     if (m_autoStartCheck) {
@@ -852,7 +852,7 @@ bool HotkeySettingsDialog::saveToConfig()
     QString serviceError;
     if(!m_aiSettings->save(&serviceError)){QMessageBox::warning(this,"服务配置",serviceError);return false;}
     for(auto* page:m_featureChoices)page->save();
-    QSettings(QSettings::defaultFormat(),QSettings::UserScope,"Evan","Evan").setValue("Markdown/Provider",m_markdownDefault->currentData());
+    QSettings(QSettings::defaultFormat(),QSettings::UserScope,"AccuShot","AccuShot").setValue("Markdown/Provider",m_markdownDefault->currentData());
     OcrManager::instance().setPreferredEngineType(m_ocrDefault->currentData().toString());
     TranslationPluginManager::instance().setPreferredEnginePreference(m_translationDefault->currentData().toString());
     FormulaOcrManager::instance().setPreferredMode(m_formulaDefault->currentData().toString());
@@ -865,7 +865,7 @@ bool HotkeySettingsDialog::saveToConfig()
     ThemeManager::instance().setResultFontSize(m_resultFontSizeCombo->currentData().toInt());
 
     // 保存智能吸附开关
-    QSettings settings(QSettings::defaultFormat(), QSettings::UserScope, "Evan", "Evan");
+    QSettings settings(QSettings::defaultFormat(), QSettings::UserScope, "AccuShot", "AccuShot");
     settings.setValue("Snapping/EnableSmartSnapping", m_enableSmartSnappingCheck->isChecked());
     settings.setValue("Snapping/Mode",m_snapMode->currentData());
 

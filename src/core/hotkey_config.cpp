@@ -16,7 +16,7 @@ HotkeyConfig& HotkeyConfig::instance()
 
 void HotkeyConfig::load()
 {
-    QSettings settings(QSettings::defaultFormat(), QSettings::UserScope, "Evan", "Evan");
+    QSettings settings(QSettings::defaultFormat(), QSettings::UserScope, "AccuShot", "AccuShot");
 
     // 全局热键
     m_data.globalSnipping = settings.value("Hotkey/Snipping", "F1").toString();
@@ -61,7 +61,7 @@ void HotkeyConfig::load()
 
 void HotkeyConfig::save()
 {
-    QSettings settings(QSettings::defaultFormat(), QSettings::UserScope, "Evan", "Evan");
+    QSettings settings(QSettings::defaultFormat(), QSettings::UserScope, "AccuShot", "AccuShot");
 
     // 全局热键
     settings.setValue("Hotkey/Snipping", m_data.globalSnipping);

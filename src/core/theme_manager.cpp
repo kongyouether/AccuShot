@@ -14,7 +14,7 @@
 
 ThemeManager::ThemeManager(QObject* parent) : QObject(parent)
 {
-    QSettings settings(QSettings::defaultFormat(), QSettings::UserScope, "Evan", "Evan");
+    QSettings settings(QSettings::defaultFormat(), QSettings::UserScope, "AccuShot", "AccuShot");
     const QString stored = settings.value("Theme/Mode", "Auto").toString();
     m_themeMode = stored == "Light" ? ThemeMode::Light : stored == "Dark" ? ThemeMode::Dark : ThemeMode::Auto;
     const int fontSize = settings.value("Appearance/ResultFontSize", 15).toInt();
@@ -66,7 +66,7 @@ void ThemeManager::setThemeMode(ThemeMode mode, bool persist)
     const bool changed = m_themeMode != mode;
     m_themeMode = mode;
     if (persist) {
-        QSettings settings(QSettings::defaultFormat(), QSettings::UserScope, "Evan", "Evan");
+        QSettings settings(QSettings::defaultFormat(), QSettings::UserScope, "AccuShot", "AccuShot");
         settings.setValue("Theme/Mode", mode == ThemeMode::Light ? "Light" : mode == ThemeMode::Dark ? "Dark" : "Auto");
     }
     if (changed) emit themeChanged(isDarkMode());
@@ -85,7 +85,7 @@ void ThemeManager::setResultFontSize(int size, bool persist)
     const bool changed = m_resultFontSize != size;
     m_resultFontSize = size;
     if (persist) {
-        QSettings settings(QSettings::defaultFormat(), QSettings::UserScope, "Evan", "Evan");
+        QSettings settings(QSettings::defaultFormat(), QSettings::UserScope, "AccuShot", "AccuShot");
         settings.setValue("Appearance/ResultFontSize", size);
     }
     if (changed) emit resultFontSizeChanged(size);

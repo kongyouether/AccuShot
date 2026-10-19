@@ -16,7 +16,7 @@
   - 提供截图原图与公式高保真预览对照；
   - 提供可微调编辑的 LaTeX 源码编辑框；
   - 底部操作栏提供三种格式一键复制按钮与引擎通道切换。
-- **插件中心挂载**：在 `PluginManager` 中注册 `evan-plugin-latex-ocr`。
+- **插件中心挂载**：在 `PluginManager` 中注册 `accushot-plugin-latex-ocr`。
 
 ## Capabilities
 

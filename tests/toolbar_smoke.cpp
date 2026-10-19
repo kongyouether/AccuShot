@@ -234,7 +234,7 @@ private slots:
             visibility->setCurrentIndex(visibility->findData(static_cast<int>(ToolVisibility::Hidden)));
             dialog.reject();
             QVERIFY(sameEntries(ToolbarConfig::instance().entries(), defaults));
-            QSettings settings(QSettings::defaultFormat(), QSettings::UserScope, "Evan", "Evan");
+            QSettings settings(QSettings::defaultFormat(), QSettings::UserScope, "AccuShot", "AccuShot");
             QVERIFY(!settings.contains("Toolbar/entries/size"));
         }
         {
@@ -274,7 +274,7 @@ private slots:
             dialog.reject();
             QVERIFY(sameEntries(ToolbarConfig::instance().entries(), custom));
         }
-        QSettings(QSettings::defaultFormat(), QSettings::UserScope, "Evan", "Evan").sync();
+        QSettings(QSettings::defaultFormat(), QSettings::UserScope, "AccuShot", "AccuShot").sync();
         QProcess reload;
         reload.start(QCoreApplication::applicationFilePath(), {"--verify-persistence", settingsDirectory});
         QVERIFY(reload.waitForFinished(15000));

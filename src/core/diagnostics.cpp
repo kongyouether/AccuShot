@@ -64,7 +64,7 @@ void Diagnostics::initialize()
 {
     const QString directory = QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation) + "/logs";
     if (!QDir().mkpath(directory)) return;
-    const QString base = directory + "/evan-" + QDateTime::currentDateTime().toString("yyyyMMdd-HHmmss-zzz") +
+    const QString base = directory + "/accushot-" + QDateTime::currentDateTime().toString("yyyyMMdd-HHmmss-zzz") +
                          "-" + QString::number(QCoreApplication::applicationPid());
     logFile.setFileName(base + ".log");
     if (!logFile.open(QIODevice::WriteOnly | QIODevice::Append)) return;

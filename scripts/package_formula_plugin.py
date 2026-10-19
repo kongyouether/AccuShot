@@ -5,10 +5,10 @@ import shutil
 def package_formula_plugin():
     root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     plugin_src = os.path.join(root_dir, "plugins", "latex_ocr")
-    dist_dir = os.path.join(root_dir, "dist")
+    dist_dir = os.path.join(os.path.dirname(root_dir), "AccuShot-build", "dist")
     os.makedirs(dist_dir, exist_ok=True)
 
-    zip_path = os.path.join(dist_dir, "evan-plugin-latex-ocr.zip")
+    zip_path = os.path.join(dist_dir, "accushot-plugin-latex-ocr.zip")
     if os.path.exists(zip_path):
         os.remove(zip_path)
 

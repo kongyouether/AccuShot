@@ -39,10 +39,10 @@ void PluginManager::initCatalog()
     ocrCore.name = "RapidOCR 高精度离线文字识别引擎";
     ocrCore.category = "文字识别";
     ocrCore.description = "基于 ONNX Runtime 与 PaddleOCR 的纯本地高精度离线文字识别引擎，支持中英文排版、旋转方向纠正与精准坐标提取。";
-    ocrCore.sizeDisplay = "74 MB";
-    ocrCore.sizeBytes = 77700000;
-    // 使用国内 CDN 高速加速镜像直链，确保免翻墙秒级建立连接并极速下载
-    ocrCore.downloadUrl = "https://ghfast.top/https://github.com/duyuanfu/evan-ocr/releases/download/plugins/evan-plugin-rapidocr-engine.zip";
+    ocrCore.sizeDisplay = "70 MB";
+    ocrCore.sizeBytes = 73461693;
+    // Use the engine project's original release package.
+    ocrCore.downloadUrl = "https://github.com/hiroi-sora/RapidOCR-json/releases/download/v0.2.0/RapidOCR-json_v0.2.0.7z";
     ocrCore.installSubdir = "plugins/ocr";
     ocrCore.checkRelativeFile = "RapidOCR-json.exe";
     m_plugins.append(ocrCore);
@@ -169,7 +169,7 @@ void PluginManager::installPlugin(const QString& id)
     info.statusMessage = "正在建立高速连接...";
     emit pluginStatusChanged(id, PluginStatus::Downloading, info.statusMessage);
 
-    QString tempZip = QDir::tempPath() + QString("/evan_plugin_%1.zip").arg(id);
+    QString tempZip = QDir::tempPath() + QString("/accushot_plugin_%1.%2").arg(id, QFileInfo(QUrl(info.downloadUrl).path()).suffix());
     if (QFile::exists(tempZip)) {
         QFile::remove(tempZip);
     }
@@ -187,7 +187,7 @@ void PluginManager::installPlugin(const QString& id)
 
     QNetworkRequest request(QUrl(info.downloadUrl));
     request.setAttribute(QNetworkRequest::RedirectPolicyAttribute, QNetworkRequest::NoLessSafeRedirectPolicy);
-    request.setHeader(QNetworkRequest::UserAgentHeader, "Evan-App/1.0.0 (Windows x64)");
+    request.setHeader(QNetworkRequest::UserAgentHeader, "AccuShot-App/1.0.0 (Windows x64)");
 
     QNetworkReply* reply = m_nam->get(request);
     m_activeReplies[id] = reply;

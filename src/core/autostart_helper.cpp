@@ -6,7 +6,7 @@
 #include <QDebug>
 
 static const char* REG_RUN_PATH = "HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Run";
-static const char* APP_REG_NAME = "Evan";
+static const char* APP_REG_NAME = "AccuShot";
 
 bool AutoStartHelper::isAutoStartEnabled()
 {
@@ -30,8 +30,9 @@ void AutoStartHelper::setAutoStartEnabled(bool enabled)
     } else {
         bootSettings.remove(APP_REG_NAME);
     }
+    bootSettings.sync();
 
-    QSettings appConfig("Evan", "Evan");
+    QSettings appConfig(QSettings::defaultFormat(), QSettings::UserScope, "AccuShot", "AccuShot");
     appConfig.setValue("General/AutoStart", enabled);
 #endif
 }
@@ -39,7 +40,7 @@ void AutoStartHelper::setAutoStartEnabled(bool enabled)
 void AutoStartHelper::ensureInitialDefaultSetup()
 {
 #ifdef Q_OS_WIN
-    QSettings appConfig("Evan", "Evan");
+    QSettings appConfig(QSettings::defaultFormat(), QSettings::UserScope, "AccuShot", "AccuShot");
     if (!appConfig.contains("General/AutoStartInitialized")) {
         // 初次运行默认开启开机自启动
         setAutoStartEnabled(true);

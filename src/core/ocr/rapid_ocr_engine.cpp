@@ -23,13 +23,17 @@ RapidOcrEngine::RapidOcrEngine(QObject* parent)
 QString RapidOcrEngine::findExecutablePath() const
 {
     const auto root=QCoreApplication::applicationDirPath()+"/plugins/ocr";
-    for(const auto& name:{"RapidOCR-json.exe","rapidocr.exe"})if(QFile::exists(root+"/"+name))return root+"/"+name;
+    // Accept both existing flat installations and the official release's top-level directory.
+    for (const auto& directory : {root, root + "/RapidOCR-json_v0.2.0"})
+        for (const auto& name : {"RapidOCR-json.exe", "rapidocr.exe"})
+            if (QFile::exists(directory + "/" + name)) return directory + "/" + name;
     return {};
 }
 
 QString RapidOcrEngine::findModelsDir() const
 {
-    return QCoreApplication::applicationDirPath()+"/plugins/ocr/models";
+    const auto executable = findExecutablePath();
+    return executable.isEmpty() ? QString() : QFileInfo(executable).absolutePath() + "/models";
 }
 
 bool RapidOcrEngine::isAvailable() const
@@ -64,7 +68,7 @@ OcrResult RapidOcrEngine::recognize(const QImage& image, qreal dpr)
     }
 
     // 将图像写入临时高速缓存文件
-    QString tempFile = QDir::tempPath() + QString("/evan_rapidocr_%1_%2.png")
+    QString tempFile = QDir::tempPath() + QString("/accushot_rapidocr_%1_%2.png")
                        .arg(QCoreApplication::applicationPid())
                        .arg(QDateTime::currentMSecsSinceEpoch());
 

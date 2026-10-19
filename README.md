@@ -30,9 +30,9 @@
 
 ## 下载与运行
 
-**[下载 AccuShot v1.2.0 · Windows x64 便携版（23.3 MB）](https://github.com/kongyouether/AccuShot/releases/download/v1.2.0/AccuShot-v1.2.0-windows-x64-portable.zip)**
+**[下载 AccuShot v1.2.1 · Windows x64 便携版](https://github.com/kongyouether/AccuShot/releases/download/v1.2.1/AccuShot-v1.2.1-windows-x64-portable.zip)**
 
-[查看 Release 与更新说明](https://github.com/kongyouether/AccuShot/releases/tag/v1.2.0) · [下载 SHA256 校验文件](https://github.com/kongyouether/AccuShot/releases/download/v1.2.0/SHA256SUMS.txt)
+[查看 Release 与更新说明](https://github.com/kongyouether/AccuShot/releases/tag/v1.2.1) · [下载 SHA256 校验文件](https://github.com/kongyouether/AccuShot/releases/download/v1.2.1/SHA256SUMS.txt)
 
 1. 下载 ZIP，**完整解压**到有写入权限的目录。
 2. 双击 `AccuShot.exe`，在任务栏右下角托盘找到程序。
@@ -42,7 +42,9 @@
 
 AI 模型不随包提供，可在设置中按需安装；部分本地插件需要 Python 3.12，在线能力需要自行配置账号。当前包在 Windows 11 x64 上完成构建和运行依赖验证，尚未在另一台干净电脑上完成全功能验收。
 
-> “便携”表示免安装、解压运行。设置仍保存在 Windows 当前用户配置中，日志位于 `%LOCALAPPDATA%\Evan\Evan\logs`；首次运行默认开启自启动，可在设置中关闭。更新前请从托盘退出旧版本。
+> “便携”表示免安装、解压运行。设置仍保存在 Windows 当前用户配置中，日志位于 `%LOCALAPPDATA%\AccuShot\AccuShot\logs`；首次运行默认开启自启动，可在设置中关闭。更新前请从托盘退出旧版本。
+
+> v1.2.1 使用独立的 AccuShot 设置与凭据标识，不自动读取旧版配置。升级前请记录需要保留的设置，并在新版中重新配置账号；新用户默认使用智能融合吸附。
 
 <details>
 <summary>核对下载文件的 SHA256</summary>
@@ -50,7 +52,7 @@ AI 模型不随包提供，可在设置中按需安装；部分本地插件需�
 下载 ZIP 和 `SHA256SUMS.txt` 到同一文件夹，在 PowerShell 中执行：
 
 ```powershell
-Get-FileHash .\AccuShot-v1.2.0-windows-x64-portable.zip -Algorithm SHA256
+Get-FileHash .\AccuShot-v1.2.1-windows-x64-portable.zip -Algorithm SHA256
 Get-Content .\SHA256SUMS.txt
 ```
 
@@ -66,7 +68,7 @@ Get-Content .\SHA256SUMS.txt
 
 面对网页卡片、文档段落或层叠窗口，先让候选框找到范围，再用滚轮和微调确定边界。
 
-- **四种吸附模式**：窗口、元素与控件、图像轮廓，以及结合三者的智能融合。
+- **四种吸附模式**：窗口、元素与控件、图像轮廓，以及结合三者的智能融合（默认）。
 - **可见内容优先**：根据窗口层叠关系调整推荐次序；被遮挡、跨窗口的候选降级保留，仍可手动选择。
 - **滚轮切换大小，Tab 切换推荐**：从小块内容到完整窗口，再到全屏，保留不同层级的选择空间。
 - **Ctrl + 滚轮精细调整**：逐步扩大或缩小候选框，默认每档四边各移动 1 个逻辑像素，步长与快捷键可配置。
@@ -189,19 +191,19 @@ Get-Content .\SHA256SUMS.txt
 $qtRoot = 'C:\Qt\6.11.1\msvc2022_64'
 $env:PATH = "$qtRoot\bin;" + $env:PATH
 
-cmake -S . -B build-release -G Ninja `
+cmake -S . -B ../AccuShot-build/release -G Ninja `
   -DCMAKE_BUILD_TYPE=Release `
   "-DQt6_DIR=$qtRoot\lib\cmake\Qt6" `
-  -DEVAN_EXECUTABLE_NAME=AccuShot
+  -DACCUSHOT_EXECUTABLE_NAME=AccuShot
 if ($LASTEXITCODE) { throw 'CMake configuration failed' }
 
-cmake --build build-release --parallel 6
+cmake --build ../AccuShot-build/release --parallel 6
 if ($LASTEXITCODE) { throw 'Build failed' }
 
-& "$qtRoot\bin\windeployqt.exe" --release --no-translations .\build-release\AccuShot.exe
+& "$qtRoot\bin\windeployqt.exe" --release --no-translations ..\AccuShot-build\release\AccuShot.exe
 if ($LASTEXITCODE) { throw 'Qt dependency deployment failed' }
 
-.\build-release\AccuShot.exe
+..\AccuShot-build\release\AccuShot.exe
 ```
 
 仓库也提供 [Windows 构建脚本](scripts/build_windows.ps1)，其中 Qt、CMake 和 Ninja 路径按维护者本机布局设置；使用前请核对。普通构建不下载 AI 模型，插件可在启动后按需安装。
@@ -242,7 +244,7 @@ docs/                设计说明、使用记录与验证材料
 
 ## 致谢与许可
 
-AccuShot 在 [Evan](https://github.com/duyuanfu/evan-ocr) 工程基础上继续开发，保留原项目版权声明；部分内部目录、设置键和构建目标仍使用 `Evan` / `evan` 名称。
+AccuShot 在 [Evan](https://github.com/duyuanfu/evan-ocr) 工程基础上继续开发，保留原项目版权声明。
 
 感谢 Qt 以及 RapidOCR、Argos Translate、RapidLaTeXOCR、Pix2Text、PaddleOCR 等项目提供的基础能力。
 

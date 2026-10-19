@@ -22,7 +22,7 @@ int main(int argc, char** argv)
         CloseHandle(process);
         return saved ? 0 : 3;
     }
-    QCoreApplication::setOrganizationName("Evan");
+    QCoreApplication::setOrganizationName("AccuShot");
     QCoreApplication::setApplicationName("DiagnosticsProbe");
     QStandardPaths::setTestModeEnabled(true);
     Diagnostics::initialize();

@@ -288,7 +288,7 @@ void SnippingOverlay::startSnipping()
     updateOcrBusyState();
 
     // 从配置读取智能吸附开关
-    QSettings settings(QSettings::defaultFormat(), QSettings::UserScope, "Evan", "Evan");
+    QSettings settings(QSettings::defaultFormat(), QSettings::UserScope, "AccuShot", "AccuShot");
     m_enableSmartSnapping = settings.value("Snapping/EnableSmartSnapping", true).toBool();
 
     // 2. 覆盖整个虚拟屏幕几何区域
@@ -300,7 +300,7 @@ void SnippingOverlay::startSnipping()
 
     // 3. Analyse the immutable image off the UI thread. Native snapping stays query-driven.
     qreal dpr = m_snapshot.fullSnapshot.devicePixelRatio();
-    const auto snapMode=settings.value("Snapping/Mode","Window").toString();
+    const auto snapMode=settings.value("Snapping/Mode","Hybrid").toString();
     m_snapper.configure(snapMode,m_snapshot.virtualGeometry,quintptr(winId()));
     m_snapper.clear();
     if(m_enableSmartSnapping && (snapMode=="Contour" || snapMode=="Hybrid")) {

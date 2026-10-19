@@ -185,7 +185,7 @@ protected:
 
 void ScrollCaptureTest::nativeSessionSampling()
 {
-    if (!qEnvironmentVariableIsSet("EVAN_NATIVE_SCROLL")) QSKIP("Set EVAN_NATIVE_SCROLL=1 with QT_QPA_PLATFORM=windows for screen sampling");
+    if (!qEnvironmentVariableIsSet("ACCUSHOT_NATIVE_SCROLL")) QSKIP("Set ACCUSHOT_NATIVE_SCROLL=1 with QT_QPA_PLATFORM=windows for screen sampling");
     QVERIFY(QGuiApplication::platformName() == "windows");
     QScreen* screen = QGuiApplication::primaryScreen();
     QVERIFY(screen);
@@ -206,7 +206,7 @@ void ScrollCaptureTest::nativeSessionSampling()
     session.start(capture, first, ScrollStitcher::Direction::Horizontal);
     QWidget* controls = nullptr;
     for (QWidget* widget : QApplication::topLevelWidgets()) {
-        if (widget->windowTitle() == "Evan 长截图") controls = widget;
+        if (widget->windowTitle() == "AccuShot 长截图") controls = widget;
     }
     QVERIFY(controls);
     auto* sizeLabel = controls->findChild<QLabel*>("secondaryText");
@@ -228,7 +228,7 @@ void ScrollCaptureTest::nativeSessionSampling()
     fixture.repaint();
     QTRY_COMPARE_WITH_TIMEOUT(sizeLabel->text(), expected(140, 3), 3000);
     QVERIFY(!preview->pixmap().isNull());
-    const QString artifacts = qEnvironmentVariable("EVAN_SCROLL_ARTIFACT_DIR", QDir::currentPath() + "/screenshots");
+    const QString artifacts = qEnvironmentVariable("ACCUSHOT_SCROLL_ARTIFACT_DIR", QDir::currentPath() + "/screenshots");
     QVERIFY(QDir().mkpath(artifacts));
     QVERIFY(controls->grab().save(artifacts + "/horizontal-scroll-native.png"));
     direction->setCurrentIndex(0);

@@ -20,7 +20,7 @@ elif backend=="translation-en-zh":
            ("unsupported",{"text":"Bonjour","source":"fr","target":"zh"})]
 else:
     cases=[(name,{"image":str(samples/f"{name}.png")}) for name in json.loads((samples/"expected.json").read_text(encoding="utf-8"))]
-env=os.environ.copy();env["EVAN_PLUGIN_OFFLINE_TEST"]="1";env["QT_QPA_PLATFORM"]="offscreen"
+env=os.environ.copy();env["ACCUSHOT_PLUGIN_OFFLINE_TEST"]="1";env["QT_QPA_PLATFORM"]="offscreen"
 env["QT_QPA_PLATFORM_PLUGIN_PATH"]="C:/Qt/6.11.1/msvc2022_64/plugins/platforms"
 env["PATH"]="C:/Qt/6.11.1/msvc2022_64/bin;"+env["PATH"]
 exe=Path("build-release/local_probe.exe").resolve()

@@ -74,7 +74,7 @@ static std::vector<std::pair<std::string, std::string>> g_jaToZh = {
 static std::map<std::string, std::string> g_enToZh = {
     {"hello", "你好"},
     {"world", "世界"},
-    {"evan", "Evan 截贴图工具"},
+    {"accushot", "AccuShot 截贴图工具"},
     {"ocr", "光学字符识别"},
     {"text", "文本"},
     {"recognition", "文字识别"},

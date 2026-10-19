@@ -17,7 +17,7 @@ int main(int argc, char** argv)
         qCritical() << "Cannot bind regression HTTP server:" << server.errorString();
         return 2;
     }
-    qputenv("EVAN_TEST_HTTP_PORT", QByteArray::number(server.serverPort()));
+    qputenv("ACCUSHOT_TEST_HTTP_PORT", QByteArray::number(server.serverPort()));
     int primaryRequests = 0;
     int fallbackRequests = 0;
     QObject::connect(&server, &QTcpServer::newConnection, &app, [&] {

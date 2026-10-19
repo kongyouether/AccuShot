@@ -1,8 +1,10 @@
-# Evan 离线翻译插件规范与部署指南
+> 历史插件包说明，当前安装与调用方式以 [主 README](../../README.md) 为准；下文旧版自动回退、性能和示例包名不作为当前行为承诺。
 
-为保持 **Evan** 主程序极致轻量（压缩包仅约 20MB 出头），离线神经机器翻译（NMT）运行引擎与各语种模型权重采用**独立扩展插件包**形式提供。
+# AccuShot 离线翻译插件规范与部署指南
 
-当本目录未放置离线模型时，Evan 主程序自动启用免费、免配置的在线直连备用引擎；当本目录安装离线插件后，Evan 将自动点亮【⚡ 离线插件就绪】，进入纯本地离线翻译模式（0网络请求，100% 本地隐私安全）。
+为保持 **AccuShot** 主程序极致轻量（压缩包仅约 20MB 出头），离线神经机器翻译（NMT）运行引擎与各语种模型权重采用**独立扩展插件包**形式提供。
+
+当本目录未放置离线模型时，AccuShot 主程序自动启用免费、免配置的在线直连备用引擎；当本目录安装离线插件后，AccuShot 将自动点亮【⚡ 离线插件就绪】，进入纯本地离线翻译模式（0网络请求，100% 本地隐私安全）。
 
 ---
 
@@ -26,7 +28,7 @@ plugins/translation/
 
 ## 二、 进程 IPC 通信协议规范
 
-Evan 主程序采用**进程隔离 IPC** 方式驱动离线翻译引擎，确保 100% 内存安全，且第三方引擎崩溃不会牵连主程序。
+AccuShot 主程序采用**进程隔离 IPC** 方式驱动离线翻译引擎，确保 100% 内存安全，且第三方引擎崩溃不会牵连主程序。
 
 ### 1. 命令行参数契约
 主程序调用 `translator-engine.exe` 时会传入以下标准参数：
@@ -42,7 +44,7 @@ translator-engine.exe --from <源语言代码> --to <目标语言代码> --input
 - `--models`：模型根目录绝对路径（可选）。
 
 ### 2. 标准输出降级机制
-若引擎未生成 `--output` 文件，Evan 会自动捕获引擎标准输出（stdout），支持直接解析纯文本或 JSON 响应：
+若引擎未生成 `--output` 文件，AccuShot 会自动捕获引擎标准输出（stdout），支持直接解析纯文本或 JSON 响应：
 ```json
 {
   "code": 200,
@@ -58,7 +60,7 @@ translator-engine.exe --from <源语言代码> --to <目标语言代码> --input
 
 ```json
 {
-  "name": "Evan Offline NMT Plugin",
+  "name": "AccuShot Offline NMT Plugin",
   "version": "1.0.0",
   "engine": "translator-engine.exe",
   "supported_languages": [
@@ -75,6 +77,6 @@ translator-engine.exe --from <源语言代码> --to <目标语言代码> --input
 
 ## 四、 用户安装与体验方法
 
-1. 从官方 Releases 页面下载对应的语种扩展包（例如 `evan-plugin-translation-en-zh.zip`）；
+1. 从官方 Releases 页面下载对应的语种扩展包（例如 `accushot-plugin-translation-en-zh.zip`）；
 2. 解压到程序所在目录的 `plugins/translation/` 文件夹下；
-3. 打开 Evan 截图识别后，在结果弹窗中即可直接享受纯本地、无依赖的毫秒级离线翻译体验！
+3. 打开 AccuShot 截图识别后，在结果弹窗中即可直接享受纯本地、无依赖的毫秒级离线翻译体验！

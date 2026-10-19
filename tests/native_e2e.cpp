@@ -34,10 +34,10 @@ public:
     bool scrollContent = false;
     int scrollOffset = 0;
     QColor animationColor;
-    QString heading = "Evan OCR 12345";
+    QString heading = "AccuShot OCR 12345";
     bool denseText = false;
     static QColor rowColor(int row) { return QColor((row * 71 + 37) % 220, (row * 43 + 67) % 220, (row * 97 + 23) % 220); }
-    CaptureFixture() { setWindowTitle("Evan native screenshot test"); setWindowFlag(Qt::WindowStaysOnTopHint); resize(760, 400); }
+    CaptureFixture() { setWindowTitle("AccuShot native screenshot test"); setWindowFlag(Qt::WindowStaysOnTopHint); resize(760, 400); }
     void paintEvent(QPaintEvent*) override {
         QPainter painter(this);
         painter.fillRect(rect(), Qt::white);
@@ -111,7 +111,7 @@ private slots:
         QSettings::setDefaultFormat(QSettings::IniFormat);
         QSettings::setPath(QSettings::IniFormat, QSettings::UserScope, output + "/settings");
         // Only this test's INI file is written; legacy native settings remain untouched.
-        QSettings isolated(QSettings::IniFormat, QSettings::UserScope, "Evan", "Evan");
+        QSettings isolated(QSettings::IniFormat, QSettings::UserScope, "AccuShot", "AccuShot");
         isolated.setValue("Theme/Mode", "Dark");
         isolated.setValue("Hotkey/Snipping", "F1");
         fixture.move(QGuiApplication::primaryScreen()->availableGeometry().topLeft() + QPoint(100, 100));
@@ -248,7 +248,7 @@ private slots:
         toolbar->actionTriggered(ToolAction::CopyText);
         QTRY_VERIFY_WITH_TIMEOUT(!overlay.isVisible(), 20000);
         const QString copied = QApplication::clipboard()->text();
-        QVERIFY2(copied.contains("Evan", Qt::CaseInsensitive), qPrintable(copied));
+        QVERIFY2(copied.contains("AccuShot", Qt::CaseInsensitive), qPrintable(copied));
         QVERIFY(copied.contains("12345"));
     }
     void windowsOcrOnCapturedText() {
@@ -278,7 +278,7 @@ private slots:
         QVERIFY2(outcome->called, "Windows OCR did not return within 20 seconds");
         qInfo().noquote() << "OCR engine:" << outcome->engine << "text:" << outcome->result.fullText;
         QVERIFY2(outcome->result.success, qPrintable(outcome->result.errorMessage));
-        QVERIFY(outcome->result.fullText.contains("Evan", Qt::CaseInsensitive));
+        QVERIFY(outcome->result.fullText.contains("AccuShot", Qt::CaseInsensitive));
         QString compact = outcome->result.fullText;
         compact.remove(' ');
         QVERIFY(compact.contains("12345"));
@@ -441,7 +441,7 @@ private slots:
         dialog->close();
     }
     void denseRapidOcrKeepsWindowResponsive() {
-        if (!OcrManager::instance().isRapidOcrReady()) QSKIP("Run from dist/Evan to use the installed RapidOCR plugin");
+        if (!OcrManager::instance().isRapidOcrReady()) QSKIP("Run from dist/AccuShot to use the installed RapidOCR plugin");
         fixture.denseText = true;
         fixture.resize(1180, 600);
         fixture.raise();
@@ -493,7 +493,7 @@ private slots:
     void cleanup() {
         fixture.denseText = false;
         fixture.resize(760, 400);
-        fixture.heading = "Evan OCR 12345";
+        fixture.heading = "AccuShot OCR 12345";
         fixture.scrollContent = false;
         fixture.scrollOffset = 0;
         fixture.animationColor = QColor();

@@ -35,7 +35,7 @@ FormulaOcrManager::FormulaOcrManager(QObject* parent)
     QNetworkProxyFactory::setUseSystemConfiguration(true);
     m_nam = std::make_unique<QNetworkAccessManager>(this);
 
-    QSettings settings(QSettings::defaultFormat(), QSettings::UserScope, "Evan", "Evan");
+    QSettings settings(QSettings::defaultFormat(), QSettings::UserScope, "AccuShot", "AccuShot");
     m_preferredMode = settings.value("FormulaOcr/PreferredMode", "Online").toString();
 }
 
@@ -49,19 +49,19 @@ QString FormulaOcrManager::preferredMode() const
 void FormulaOcrManager::setPreferredMode(const QString& mode)
 {
     m_preferredMode = mode;
-    QSettings settings(QSettings::defaultFormat(), QSettings::UserScope, "Evan", "Evan");
+    QSettings settings(QSettings::defaultFormat(), QSettings::UserScope, "AccuShot", "AccuShot");
     settings.setValue("FormulaOcr/PreferredMode", mode);
 }
 
 QString FormulaOcrManager::simpleTexToken() const
 {
-    QSettings settings(QSettings::defaultFormat(), QSettings::UserScope, "Evan", "Evan");
+    QSettings settings(QSettings::defaultFormat(), QSettings::UserScope, "AccuShot", "AccuShot");
     return settings.value("FormulaOcr/SimpleTexToken", "").toString().trimmed();
 }
 
 void FormulaOcrManager::setSimpleTexToken(const QString& token)
 {
-    QSettings settings(QSettings::defaultFormat(), QSettings::UserScope, "Evan", "Evan");
+    QSettings settings(QSettings::defaultFormat(), QSettings::UserScope, "AccuShot", "AccuShot");
     settings.setValue("FormulaOcr/SimpleTexToken", token.trimmed());
 }
 
@@ -132,7 +132,7 @@ void FormulaOcrManager::recognizeOnlineAsync(const QByteArray& imageBytes, qint6
     // 国内免梯子高可用学术公式识别 API (SimpleTeX / 云端多通道热备)
     QUrl url("https://server.simpletex.cn/api/latex_ocr");
     QNetworkRequest request(url);
-    request.setHeader(QNetworkRequest::UserAgentHeader, "Evan-FormulaOCR/1.1.2");
+    request.setHeader(QNetworkRequest::UserAgentHeader, "AccuShot-FormulaOCR/1.1.2");
     request.setTransferTimeout(9000); // 9秒超时
 
     QString token = simpleTexToken();
@@ -234,7 +234,7 @@ void FormulaOcrManager::renderFormulaAsync(const QString& latex,
     QString encoded = QUrl::toPercentEncoding(trimmed);
     QUrl url(QString("https://latex.codecogs.com/png.latex?\\dpi{300}&space;%1").arg(encoded));
     QNetworkRequest req(url);
-    req.setHeader(QNetworkRequest::UserAgentHeader, "Evan-FormulaRenderer/1.2.0");
+    req.setHeader(QNetworkRequest::UserAgentHeader, "AccuShot-FormulaRenderer/1.2.0");
     req.setTransferTimeout(6000);
 
     QNetworkReply* reply = m_nam->get(req);

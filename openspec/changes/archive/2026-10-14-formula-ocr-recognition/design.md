@@ -1,6 +1,6 @@
 ## Context
 
-Evan 是一款基于 C++20 与 Qt 6 开发的高性能轻量级截贴图与 OCR 工具（安装包仅 21.49MB）。现有 OCR 体系擅长通用文本与段落提取，但在处理复杂的二维数学公式、根号、分式、矩阵与希腊符号时无法生成结构化 LaTeX。
+AccuShot 是一款基于 C++20 与 Qt 6 开发的高性能轻量级截贴图与 OCR 工具（安装包仅 21.49MB）。现有 OCR 体系擅长通用文本与段落提取，但在处理复杂的二维数学公式、根号、分式、矩阵与希腊符号时无法生成结构化 LaTeX。
 
 为了服务广大学术研究、论文写作、工程计算与课件编写用户，需要引入专门的公式识别体系，同时必须保持主程序极致轻巧的初心（不臃肿、秒启动）。
 
@@ -11,7 +11,7 @@ Evan 是一款基于 C++20 与 Qt 6 开发的高性能轻量级截贴图与 OCR 
 - 构建双轨识别中枢 `FormulaOcrManager`：默认极速免下载的云端通道，并支持平滑降级至本地 `RapidLaTeXOCR` 独立离线插件；
 - 实现 `FormulaFormatHelper`，支持 LaTeX、Markdown（`$$ ... $$`）以及供 Microsoft Word 原生公式识别的 MathML XML 格式转换；
 - 构建 `FormulaResultDialog`，提供原图与渲染图比对、可编辑 LaTeX 源码与一键复制功能；
-- 在插件中心登记 `evan-plugin-latex-ocr`。
+- 在插件中心登记 `accushot-plugin-latex-ocr`。
 
 **Non-Goals:**
 - 不直接将上百兆的离线 AI 权重打包进主程序安装包（通过插件商城解耦）；
@@ -25,7 +25,7 @@ Evan 是一款基于 C++20 与 Qt 6 开发的高性能轻量级截贴图与 OCR 
 
 ### 决策 2：双轨架构（在线直连优先 + 离线插件保底）
 - **选择**：默认走云端高速通道，本地插件中心提供离线可选扩展包。
-- **理由**：云端通道零本地体积占用，保证安装包始终维持在 21MB 水平，且复杂公式矩阵识别率高达 98%+；离线插件包（`evan-plugin-latex-ocr.zip`）满足断网与高隐私需求，两者通过 `FormulaOcrManager` 统一调度。
+- **理由**：云端通道零本地体积占用，保证安装包始终维持在 21MB 水平，且复杂公式矩阵识别率高达 98%+；离线插件包（`accushot-plugin-latex-ocr.zip`）满足断网与高隐私需求，两者通过 `FormulaOcrManager` 统一调度。
 
 ### 决策 3：多格式导出与 MathML 直粘 Word
 - **选择**：在剪贴板中推送标准 MathML XML (`<math xmlns="http://www.w3.org/1998/Math/MathML">`)。

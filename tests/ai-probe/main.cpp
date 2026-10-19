@@ -14,7 +14,7 @@ int main(int argc,char** argv){
  AiService::run(selected,"Translate into Chinese. Return only the translation: A clear interface helps people work efficiently.",{},&app,[&](AiResult r){
    if(!r.success){QTextStream(stdout)<<r.error<<Qt::endl;app.exit(6);return;}
    QString error;if(!AiService::saveProfiles(profiles,&error)){QTextStream(stdout)<<error<<Qt::endl;app.exit(7);return;}
-   QSettings cfg(QSettings::NativeFormat,QSettings::UserScope,"Evan","Evan");cfg.setValue("Translation/Engine","ai:deepseek");cfg.setValue("Snapping/Mode","Window");cfg.setValue("Snapping/EnableSmartSnapping",true);
+   QSettings cfg(QSettings::NativeFormat,QSettings::UserScope,"AccuShot","AccuShot");cfg.setValue("Translation/Engine","ai:deepseek");cfg.setValue("Snapping/Mode","Window");cfg.setValue("Snapping/EnableSmartSnapping",true);
    QTextStream(stdout)<<"DeepSeek live translation PASS\n"<<r.text<<"\nCredential stored in Windows Credential Manager; default translation=DeepSeek; snap=Window.\n";
    app.exit(0);
  });QTimer::singleShot(100000,&app,[&]{app.exit(8);});return app.exec();

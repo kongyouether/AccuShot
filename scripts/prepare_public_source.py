@@ -10,7 +10,7 @@ import zipfile
 ROOT_FILES = {'.gitignore', 'README.md', 'LICENSE', 'CMakeLists.txt',
               'CONTRIBUTING.md', 'generate_icon.py'}
 SOURCE_DIRS = {'src', 'resources', 'scripts', 'tests', 'plugins', 'tools', 'openspec'}
-# These legacy helpers upload to the upstream maintainer's hard-coded repository.
+# Legacy release helpers require a separate publication review; exclude from source exports.
 LOCAL_HELPERS = {'scripts/upload_release.py', 'tools/upload_release_asset.py'}
 PUBLIC_IMAGES = {'workbench-light.png', 'workbench-dark.png', 'toolbar-light.png',
                  'plugins-light.png', 'plugins-dark.png'}
@@ -20,6 +20,8 @@ def category_allowed(name):
     path = PurePosixPath(name)
     if name in LOCAL_HELPERS:
         return False
+    if name == 'docs/brand-identity.md':
+        return True
     if name in ROOT_FILES:
         return True
     if path.parent == PurePosixPath('docs/images/readme'):
@@ -76,5 +78,5 @@ if __name__ == '__main__':
     parser.add_argument('--output', type=Path, help='New output directory; must not exist')
     args = parser.parse_args()
     repository = Path(__file__).resolve().parents[1]
-    target = args.output or repository / 'build-evidence' / ('public-source-' + datetime.now().strftime('%Y%m%d-%H%M%S'))
+    target = args.output or repository.parent / 'AccuShot-build' / 'exports' / ('public-source-' + datetime.now().strftime('%Y%m%d-%H%M%S'))
     export(repository, target.resolve())

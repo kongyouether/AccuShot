@@ -592,7 +592,7 @@ void OcrResultDialog::setupUi()
 
     m_splitter->addWidget(rightContainer);
 
-    QSettings settings(QSettings::defaultFormat(), QSettings::UserScope, "Evan", "Evan");
+    QSettings settings(QSettings::defaultFormat(), QSettings::UserScope, "AccuShot", "AccuShot");
     m_imagePercent = qBound(28, settings.value("ResultDialog/imagePercent", 40).toInt(), 52);
     m_splitter->setSizes({m_imagePercent * 10, (100 - m_imagePercent) * 10});
     m_splitter->setStretchFactor(0, 40);
@@ -691,7 +691,7 @@ void OcrResultDialog::setImageColumnPercent(int percent)
     const int total = sizes[0] + sizes[1];
     const int imageWidth = qRound(total * m_imagePercent / 100.0);
     m_splitter->setSizes({imageWidth, total - imageWidth});
-    QSettings settings(QSettings::defaultFormat(), QSettings::UserScope, "Evan", "Evan");
+    QSettings settings(QSettings::defaultFormat(), QSettings::UserScope, "AccuShot", "AccuShot");
     settings.setValue("ResultDialog/imagePercent", m_imagePercent);
 }
 

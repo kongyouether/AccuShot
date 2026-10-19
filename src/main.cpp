@@ -29,7 +29,7 @@ int main(int argc, char *argv[])
     SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
 
     // 单实例互斥锁，禁止重复点击启动多个后台进程
-    HANDLE hMutex = CreateMutexW(nullptr, TRUE, L"Evan_SingleInstance_Mutex_Unique");
+    HANDLE hMutex = CreateMutexW(nullptr, TRUE, L"AccuShot_SingleInstance_Mutex_Unique");
     if (GetLastError() == ERROR_ALREADY_EXISTS) {
         if (hMutex) CloseHandle(hMutex);
         MessageBoxW(nullptr,
@@ -46,9 +46,9 @@ int main(int argc, char *argv[])
     );
 
     QApplication app(argc, argv);
-    app.setApplicationName("Evan");
+    app.setApplicationName("AccuShot");
     app.setApplicationDisplayName("AccuShot");
-    app.setOrganizationName("Evan");
+    app.setOrganizationName("AccuShot");
     Diagnostics::initialize();
     app.setQuitOnLastWindowClosed(false);
 
@@ -156,11 +156,11 @@ int main(int argc, char *argv[])
         }
         if (!c.globalSnipping.trimmed().isEmpty()) {
             g_snipHotkeyId = HotkeyManager::instance().registerHotkey(QKeySequence(c.globalSnipping), []() {
-                qDebug() << "[Evan] 捕获全局热键唤醒截屏";
+                qDebug() << "[AccuShot] 捕获全局热键唤醒截屏";
                 SnippingOverlay::instance().startSnipping();
             });
             if (g_snipHotkeyId == 0) {
-                qWarning() << "[Evan] 全局截屏热键注册失败:" << c.globalSnipping;
+                qWarning() << "[AccuShot] 全局截屏热键注册失败:" << c.globalSnipping;
             }
         }
 
@@ -172,7 +172,7 @@ int main(int argc, char *argv[])
         if (!c.globalPin.trimmed().isEmpty()) {
             g_pinHotkeyId = HotkeyManager::instance().registerHotkey(QKeySequence(c.globalPin), doClipboardPin);
             if (g_pinHotkeyId == 0) {
-                qWarning() << "[Evan] 全局贴图热键注册失败:" << c.globalPin;
+                qWarning() << "[AccuShot] 全局贴图热键注册失败:" << c.globalPin;
             }
         }
 
@@ -205,26 +205,26 @@ int main(int argc, char *argv[])
         .arg(currentConfig.globalSnipping, currentConfig.globalPin),
         QSystemTrayIcon::Information, 3000);
 
-    qDebug() << "[Evan] 应用程序初始化成功，当前截屏快捷键:" << currentConfig.globalSnipping
+    qDebug() << "[AccuShot] 应用程序初始化成功，当前截屏快捷键:" << currentConfig.globalSnipping
              << "贴图快捷键:" << currentConfig.globalPin;
 
     // 监听截图完成事件
     QObject::connect(&SnippingOverlay::instance(), &SnippingOverlay::snippingFinished,
                      [](const QPixmap& pixmap, const QRect& region) {
-        qDebug() << "[Evan] 截图完成，已写入系统剪贴板! 选区:" << region
+        qDebug() << "[AccuShot] 截图完成，已写入系统剪贴板! 选区:" << region
                  << "尺寸:" << pixmap.size();
     });
 
     // 监听贴图请求事件 (将选区及其标注转为独立置顶 Pin 窗口)
     QObject::connect(&SnippingOverlay::instance(), &SnippingOverlay::pinRequested,
                      [](const QPixmap& pixmap, const QRect& screenPos) {
-        qDebug() << "[Evan] 收到贴图请求，创建独立 PinWindow 置顶贴图，物理位置:" << screenPos;
+        qDebug() << "[AccuShot] 收到贴图请求，创建独立 PinWindow 置顶贴图，物理位置:" << screenPos;
         PinManager::instance().createPin(pixmap, screenPos);
     });
 
     // 监听截图取消事件
     QObject::connect(&SnippingOverlay::instance(), &SnippingOverlay::snippingCancelled, []() {
-        qDebug() << "[Evan] 截图已取消";
+        qDebug() << "[AccuShot] 截图已取消";
     });
 
     int ret = app.exec();

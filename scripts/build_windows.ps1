@@ -9,15 +9,16 @@ if (!$vs) { throw 'Install MSVC x64/x86 Build Tools and Windows SDK first.' }
 $env:VSLANG = '1033'
 $cmake = 'C:\Qt\Tools\CMake_64\bin\cmake.exe'
 $qt = 'C:\Qt\6.11.1\msvc2022_64'
-$build = Join-Path $repo 'build-release'
+$buildRoot = Join-Path (Split-Path $repo -Parent) 'AccuShot-build'
+$build = Join-Path $buildRoot 'release'
 & $cmake -S $repo -B $build -G Ninja -DCMAKE_BUILD_TYPE=Release `
     '-DCMAKE_MAKE_PROGRAM=C:/Qt/Tools/Ninja/ninja.exe' `
-    "-DQt6_DIR=$qt/lib/cmake/Qt6" '-DEVAN_EXECUTABLE_NAME=AccuShot'
+    "-DQt6_DIR=$qt/lib/cmake/Qt6" '-DACCUSHOT_EXECUTABLE_NAME=AccuShot'
 if ($LASTEXITCODE) { throw 'CMake configuration failed.' }
 & $cmake --build $build --parallel 6
 if ($LASTEXITCODE) { throw 'Build failed; see compiler diagnostics above.' }
 if ($Deploy) {
-    $destination = Join-Path $repo 'dist\AccuShot'
+    $destination = Join-Path $buildRoot 'dist\AccuShot'
     New-Item -ItemType Directory -Path $destination -Force | Out-Null
     Copy-Item -LiteralPath "$build\AccuShot.exe" -Destination "$destination\AccuShot.exe"
     Copy-Item -LiteralPath "$build\AccuShot.pdb" -Destination "$destination\AccuShot.pdb"

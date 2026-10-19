@@ -111,7 +111,7 @@ def main():
     if not args.prepare:
         os.environ["HF_HUB_OFFLINE"] = "1"
         os.environ["TRANSFORMERS_OFFLINE"] = "1"
-        if args.backend == "pix2text-page" or os.environ.get("EVAN_PLUGIN_OFFLINE_TEST") == "1":
+        if args.backend == "pix2text-page" or os.environ.get("ACCUSHOT_PLUGIN_OFFLINE_TEST") == "1":
             def reject_network(event, _args):
                 if event in ("socket.connect", "socket.getaddrinfo"):
                     # DocLayout-YOLO probes connectivity at import and handles OSError.

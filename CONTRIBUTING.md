@@ -14,16 +14,16 @@
 $qtRoot = 'C:\Qt\6.11.1\msvc2022_64'
 $env:PATH = "$qtRoot\bin;" + $env:PATH
 
-cmake -S tests/contour -B build-contour -G Ninja `
+cmake -S tests/contour -B ../AccuShot-build/contour -G Ninja `
   "-DQt6_DIR=$qtRoot\lib\cmake\Qt6" -DCMAKE_BUILD_TYPE=Release
 if ($LASTEXITCODE) { throw 'Configure failed' }
-cmake --build build-contour --target fusion_regression contour_regression --parallel 6
+cmake --build ../AccuShot-build/contour --target fusion_regression contour_regression --parallel 6
 if ($LASTEXITCODE) { throw 'Build failed' }
 
 $env:QT_QPA_PLATFORM = 'offscreen'
-.\build-contour\fusion_regression.exe
+..\AccuShot-build\contour\fusion_regression.exe
 if ($LASTEXITCODE) { throw 'Fusion regression failed' }
-.\build-contour\contour_regression.exe
+..\AccuShot-build\contour\contour_regression.exe
 if ($LASTEXITCODE) { throw 'Contour regression failed' }
 ```
 
@@ -47,6 +47,6 @@ if ($LASTEXITCODE) { throw 'Contour regression failed' }
 py -3.12 scripts/prepare_public_source.py
 ```
 
-输出位于 `build-evidence/public-source-时间戳/`，包括源码目录、ZIP和文件清单。清单保留在源码包外。脚本只检查文件类别与路径，不替代凭据扫描或图片人工核对。新增要公开的目录时，应先审查内容再修改白名单。
+输出位于 `../AccuShot-build/exports/public-source-时间戳/`，包括源码目录、ZIP和文件清单。清单保留在源码包外。脚本只检查文件类别与路径，不替代凭据扫描或图片人工核对。新增要公开的目录时，应先审查内容再修改白名单。
 
 要以新的公开仓库发布，请将生成的ZIP解压到独立目录，检查后在该目录初始化新仓库。若原仓库历史含敏感材料，直接推送原分支会把旧提交一并上传；新增忽略规则或删除提交无法清除旧历史。

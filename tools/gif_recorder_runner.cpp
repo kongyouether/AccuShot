@@ -7,7 +7,7 @@
 #include <fstream>
 
 // -------------------------------------------------------------
-// Evan GIF 动态高帧率录屏工具 (独立扩展插件)
+// AccuShot GIF 动态高帧率录屏工具 (独立扩展插件)
 // 纯原生 Windows GDI 帧捕获 + 变长 LZW 多帧 GIF 编码
 // -------------------------------------------------------------
 
@@ -219,7 +219,7 @@ bool captureScreenRect(int x, int y, int w, int h, std::vector<uint8_t>& outRgb)
 
 int main(int argc, char* argv[]) {
     int x = 100, y = 100, w = 400, h = 300;
-    std::string outputPath = "evan_recording.gif";
+    std::string outputPath = "accushot_recording.gif";
 
     for (int i = 1; i < argc; ++i) {
         std::string arg = argv[i];

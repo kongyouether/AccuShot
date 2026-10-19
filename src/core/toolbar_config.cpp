@@ -69,7 +69,7 @@ QList<ToolbarEntry> ToolbarConfig::defaults()
 
 ToolbarConfig::ToolbarConfig()
 {
-    QSettings settings(QSettings::defaultFormat(), QSettings::UserScope, "Evan", "Evan");
+    QSettings settings(QSettings::defaultFormat(), QSettings::UserScope, "AccuShot", "AccuShot");
     settings.beginGroup("Toolbar");
     const int count = settings.beginReadArray("entries");
     const auto& definitions = toolbarDefinitions();
@@ -105,7 +105,7 @@ ToolbarConfig::ToolbarConfig()
 void ToolbarConfig::setEntries(QList<ToolbarEntry> entries)
 {
     m_entries = std::move(entries);
-    QSettings settings(QSettings::defaultFormat(), QSettings::UserScope, "Evan", "Evan");
+    QSettings settings(QSettings::defaultFormat(), QSettings::UserScope, "AccuShot", "AccuShot");
     settings.beginGroup("Toolbar");
     settings.beginWriteArray("entries", static_cast<int>(m_entries.size()));
     for (int i = 0; i < m_entries.size(); ++i) {

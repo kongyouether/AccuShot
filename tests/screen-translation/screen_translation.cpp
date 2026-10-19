@@ -61,7 +61,7 @@ private slots:
         QVERIFY(QFontDatabase::addApplicationFont("C:/Windows/Fonts/msyh.ttc") >= 0);
         QVERIFY(QFontDatabase::addApplicationFont("C:/Windows/Fonts/arial.ttf") >= 0);
         QApplication::setFont(QFont("Microsoft YaHei UI", 9));
-        QSettings settings(QSettings::defaultFormat(), QSettings::UserScope, "Evan", "Evan");
+        QSettings settings(QSettings::defaultFormat(), QSettings::UserScope, "AccuShot", "AccuShot");
         settings.setValue("Ocr/Engine", "WindowsMedia");
         settings.setValue("Translation/Engine", "Offline");
     }
@@ -228,9 +228,9 @@ private slots:
         }
     }
     void realLocalModels() {
-        if (!qEnvironmentVariableIsSet("EVAN_SCREEN_TRANSLATION_REAL_LOCAL"))
-            QSKIP("Set EVAN_SCREEN_TRANSLATION_REAL_LOCAL=1 and run beside installed plugins for synthetic local OCR/Argos validation.");
-        qputenv("EVAN_PLUGIN_OFFLINE_TEST", "1");
+        if (!qEnvironmentVariableIsSet("ACCUSHOT_SCREEN_TRANSLATION_REAL_LOCAL"))
+            QSKIP("Set ACCUSHOT_SCREEN_TRANSLATION_REAL_LOCAL=1 and run beside installed plugins for synthetic local OCR/Argos validation.");
+        qputenv("ACCUSHOT_PLUGIN_OFFLINE_TEST", "1");
         QVERIFY2(OcrManager::instance().isRapidOcrReady(), "Run this test executable beside installed RapidOCR, e.g. build-release.");
         QVERIFY(TranslationPluginManager::instance().isOfflinePluginReady());
         OcrManager::instance().setPreferredEngineType("RapidOCR");

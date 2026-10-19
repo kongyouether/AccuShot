@@ -1,5 +1,6 @@
 #include "core/plugin/local_plugin.h"
 #include "core/ocr/ocr_manager.h"
+#include "core/ocr/rapid_ocr_engine.h"
 #include "core/plugin/plugin_manager.h"
 #include <QStandardItemModel>
 #include "ui/overlay/snipping_overlay.h"
@@ -141,7 +142,7 @@ private slots:
         }
     }
     void independentFeatureSchemes() {
-        QSettings cfg(QSettings::defaultFormat(),QSettings::UserScope,"Evan","Evan");
+        QSettings cfg(QSettings::defaultFormat(),QSettings::UserScope,"AccuShot","AccuShot");
         AiProfile p;p.id="shared-account";p.name="Shared visual account";p.endpoint="https://example.com/v1";p.model="legacy-model";p.vision=true;p.key="test-only-key";
         QVERIFY(AiService::saveProfiles({p}));
         const auto cleanup=qScopeGuard([&]{cfg.remove("AI/TaskModels");cfg.remove("AI/TaskPrompts");cfg.remove("Markdown/Provider");AiService::saveProfiles(AiService::presets());PluginManager::instance().uninstallPlugin("markdown-vision");OcrManager::instance().setPreferredEngineType("WindowsMedia");TranslationPluginManager::instance().setPreferredEnginePreference("Online");FormulaOcrManager::instance().setPreferredMode("Online");});
@@ -167,7 +168,7 @@ private slots:
         ocr->setCurrentIndex(ocr->findData("ai:shared-account"));
         QCOMPARE(dialog.findChild<QLineEdit*>("ocrModel")->text(),QString("ocr-model"));
         auto* pages=dialog.findChild<QTabWidget*>("settingsPages");
-        const auto evidence=qEnvironmentVariable("EVAN_SCHEME_UI_DIR","docs/evidence/feature-schemes-2026-10-18");QDir().mkpath(evidence);
+        const auto evidence=qEnvironmentVariable("ACCUSHOT_SCHEME_UI_DIR","docs/evidence/feature-schemes-2026-10-18");QDir().mkpath(evidence);
         for(auto mode:{ThemeMode::Light,ThemeMode::Dark}) {
             ThemeManager::instance().setThemeMode(mode);
             for(int page:{5,7,8,9}) {pages->setCurrentIndex(page);QApplication::processEvents();QVERIFY(dialog.grab().save(evidence+QString("/page-%1-%2.png").arg(page).arg(mode==ThemeMode::Light?"light":"dark")));}
@@ -240,7 +241,7 @@ private slots:
         MarkdownResultDialog dialog;dialog.setImage(QPixmap::fromImage(image));dialog.show();
         auto* edit=dialog.findChild<QPlainTextEdit*>("markdownSource");QVERIFY(edit);
         edit->setPlainText(markdown);QVERIFY(dialog.findChild<QPushButton*>("markdownSave")->isEnabled());
-        const auto evidence=qEnvironmentVariable("EVAN_MARKDOWN_UI_DIR","docs/evidence/markdown-2026-10-18");
+        const auto evidence=qEnvironmentVariable("ACCUSHOT_MARKDOWN_UI_DIR","docs/evidence/markdown-2026-10-18");
         QDir().mkpath(evidence);
         const auto old=ThemeManager::instance().themeMode();
         for(const auto theme:{ThemeMode::Light,ThemeMode::Dark}) {
@@ -253,14 +254,14 @@ private slots:
         ThemeManager::instance().setThemeMode(old,false);
     }
     void markdownRealLocal() {
-        if(!qEnvironmentVariableIsSet("EVAN_MARKDOWN_LOCAL"))QSKIP("Explicit real-model probe only");
-        const QString provider=qEnvironmentVariable("EVAN_MARKDOWN_LOCAL");
-        const QImage image(qEnvironmentVariable("EVAN_MARKDOWN_IMAGE"));QVERIFY(!image.isNull());
+        if(!qEnvironmentVariableIsSet("ACCUSHOT_MARKDOWN_LOCAL"))QSKIP("Explicit real-model probe only");
+        const QString provider=qEnvironmentVariable("ACCUSHOT_MARKDOWN_LOCAL");
+        const QImage image(qEnvironmentVariable("ACCUSHOT_MARKDOWN_IMAGE"));QVERIFY(!image.isNull());
         bool done=false;MarkdownResult result;QElapsedTimer timer;timer.start();
         MarkdownConverter::convert(provider,image,this,[&](MarkdownResult r){result=std::move(r);done=true;});
         QTRY_VERIFY_WITH_TIMEOUT(done,185000);
         QVERIFY2(result.success,qPrintable(result.error));
-        const QString output=qEnvironmentVariable("EVAN_MARKDOWN_OUTPUT");QString error;
+        const QString output=qEnvironmentVariable("ACCUSHOT_MARKDOWN_OUTPUT");QString error;
         QVERIFY2(MarkdownConverter::save(output,result.text,result,&error),qPrintable(error));
         qInfo()<<"provider"<<provider<<"elapsed_ms"<<timer.elapsed()<<"characters"<<result.text.size();
     }
@@ -292,8 +293,8 @@ private slots:
         QApplication::setFont(QFont("Microsoft YaHei UI", 9));
         QSettings::setDefaultFormat(QSettings::IniFormat);
         QSettings::setPath(QSettings::IniFormat, QSettings::UserScope, settings.path());
-        QVERIFY(QSettings(QSettings::defaultFormat(), QSettings::UserScope, "Evan", "Evan").fileName().startsWith(settings.path()));
-        QSettings native(QSettings::NativeFormat, QSettings::UserScope, "Evan", "Evan");
+        QVERIFY(QSettings(QSettings::defaultFormat(), QSettings::UserScope, "AccuShot", "AccuShot").fileName().startsWith(settings.path()));
+        QSettings native(QSettings::NativeFormat, QSettings::UserScope, "AccuShot", "AccuShot");
         for (const auto& key : native.allKeys()) nativeBefore.insert(key, native.value(key));
         QApplication::setAttribute(Qt::AA_DontUseNativeDialogs);
         qApp->setStyleSheet(ThemeManager::instance().getApplicationStyle());
@@ -302,22 +303,22 @@ private slots:
         });
     }
     void cleanupTestCase() {
-        QSettings native(QSettings::NativeFormat, QSettings::UserScope, "Evan", "Evan");
+        QSettings native(QSettings::NativeFormat, QSettings::UserScope, "AccuShot", "AccuShot");
         QVariantMap after;
         for (const auto& key : native.allKeys()) after.insert(key, native.value(key));
         QVERIFY2(after == nativeBefore, "Tests must not modify real user settings");
     }
     void manualLocalUi() {
-        if (!qEnvironmentVariableIsSet("EVAN_MANUAL_LOCAL_UI")) QSKIP("Interactive native verification only");
+        if (!qEnvironmentVariableIsSet("ACCUSHOT_MANUAL_LOCAL_UI")) QSKIP("Interactive native verification only");
         QVERIFY(QApplication::platformName() == "windows");
         OcrManager::instance().setPreferredEngineType("RapidOCR");
         FormulaOcrManager::instance().setPreferredMode("Offline");
         TranslationPluginManager::instance().setPreferredEnginePreference("Offline");
         QDialog host;
-        host.setWindowTitle("Evan 本地插件原生验收");
+        host.setWindowTitle("AccuShot 本地插件原生验收");
         auto* layout = new QVBoxLayout(&host);
         layout->addWidget(new QLabel("临时设置 · 真实产品窗口 · 真实本地模型", &host));
-        const QString samples = qEnvironmentVariable("EVAN_MANUAL_SAMPLES");
+        const QString samples = qEnvironmentVariable("ACCUSHOT_MANUAL_SAMPLES");
         auto* settingsButton = new QPushButton("打开设置", &host);
         auto* ocrButton = new QPushButton("文字识别与翻译样本", &host);
         auto* formulaButton = new QPushButton("公式样本", &host);
@@ -349,8 +350,35 @@ private slots:
         QCOMPARE(engine->currentData().toString(), QString("WindowsMedia"));
         QCOMPARE(dialog.findChild<QPlainTextEdit*>("sourceText")->toPlainText(), result.fullText);
     }
+    void officialRapidOcrArchive() {
+        const QString archive = qEnvironmentVariable("ACCUSHOT_RAPIDOCR_ARCHIVE");
+        if (archive.isEmpty()) QSKIP("Separate official engine package verification");
+        auto& plugins = PluginManager::instance();
+        const auto root = plugins.pluginRootDir() + "/ocr";
+        QVERIFY2(!QDir(root).exists(), "Run with an isolated test build without installed OCR");
+        const auto cleanup = qScopeGuard([&] { plugins.uninstallPlugin("rapidocr-engine"); });
+        QVERIFY(plugins.installFromLocalZip(archive, "rapidocr-engine"));
+        RapidOcrEngine engine;
+        QVERIFY(engine.isAvailable());
+        QVERIFY(engine.componentPath().contains("RapidOCR-json_v0.2.0/"));
+        QImage sample(800,180,QImage::Format_RGB32); sample.fill(Qt::white);
+        { QPainter painter(&sample); QFont font("Arial"); font.setPixelSize(44);
+          painter.setFont(font); painter.setPen(Qt::black); painter.drawText(30,100,"AccuShot test 12345"); }
+        const auto result = engine.recognize(sample, 1);
+        QVERIFY2(result.success, qPrintable(result.errorMessage));
+        QVERIFY2(result.fullText.contains("12345"), qPrintable(result.fullText));
+        QVERIFY(!result.lines.isEmpty());
+        // Existing flat installations must remain usable too.
+        const auto nested = root + "/RapidOCR-json_v0.2.0";
+        QDir files(nested);
+        for (const auto& entry : files.entryInfoList(QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot))
+            QVERIFY(QDir().rename(entry.absoluteFilePath(), root + "/" + entry.fileName()));
+        QVERIFY(QDir().rmdir(nested));
+        QVERIFY(engine.isAvailable());
+        QVERIFY(!engine.componentPath().contains("RapidOCR-json_v0.2.0/"));
+    }
     void installedLocalPluginsUi() {
-        if(!qEnvironmentVariableIsSet("EVAN_TEST_INSTALLED_PLUGINS"))QSKIP("Separate real-model installation test; run beside installed plugins");
+        if(!qEnvironmentVariableIsSet("ACCUSHOT_TEST_INSTALLED_PLUGINS"))QSKIP("Separate real-model installation test; run beside installed plugins");
         for(const auto& id:{"translation-en-zh","latex-ocr-engine","pix2text","paddleformula"})QVERIFY2(LocalPlugin::ready(id),id);
         HotkeySettingsDialog dialog;dialog.show();auto* pages=dialog.findChild<QTabWidget*>("settingsPages");QVERIFY(pages);
         bool finished=false;bool success=false;
@@ -410,7 +438,7 @@ private slots:
         AiProfile p;p.id="test-service";p.name="测试服务";p.endpoint="https://example.com/v1";p.model="test-model";p.key="test-secret";p.headers={{"private-header","header-secret"}};
         QVERIFY(AiService::saveProfiles({p}));
         const auto saved=AiService::profiles();QCOMPARE(saved.size(),1);QCOMPARE(saved[0].key,p.key);QCOMPARE(saved[0].headers,p.headers);
-        const auto json=QSettings(QSettings::defaultFormat(),QSettings::UserScope,"Evan","Evan").value("AI/Profiles").toString();QVERIFY(!json.contains("test-secret"));QVERIFY(!json.contains("header-secret"));
+        const auto json=QSettings(QSettings::defaultFormat(),QSettings::UserScope,"AccuShot","AccuShot").value("AI/Profiles").toString();QVERIFY(!json.contains("test-secret"));QVERIFY(!json.contains("header-secret"));
         QCOMPARE(AiService::request(p).url().path(),QString("/v1/chat/completions"));
         QVERIFY(AiService::payload(p,"test")["messages"].isArray());
         QVERIFY(AiService::parse("openai",R"({"choices":[{"message":{"content":"你好"}}]})").success);
@@ -454,15 +482,19 @@ private slots:
         QVERIFY(AiService::saveProfiles(AiService::presets()));
     }
     void settingsServicesAndSnapDraft() {
-        auto cfg=QSettings(QSettings::defaultFormat(),QSettings::UserScope,"Evan","Evan");cfg.remove("Snapping/Mode");
-        {HotkeySettingsDialog dialog;auto* snap=dialog.findChild<QComboBox*>("snapMode");QVERIFY(snap);QCOMPARE(snap->currentData().toString(),QString("Window"));QVERIFY(snap->findData("Hybrid")>=0);snap->setCurrentIndex(snap->findData("Hybrid"));dialog.reject();}
+        auto cfg=QSettings(QSettings::defaultFormat(),QSettings::UserScope,"AccuShot","AccuShot");cfg.remove("Snapping/Mode");
+        {HotkeySettingsDialog dialog;auto* snap=dialog.findChild<QComboBox*>("snapMode");QVERIFY(snap);QCOMPARE(snap->currentData().toString(),QString("Hybrid"));QVERIFY(snap->findData("Window")>=0);snap->setCurrentIndex(snap->findData("Window"));dialog.reject();}
         QVERIFY(!cfg.contains("Snapping/Mode"));
+        cfg.setValue("Snapping/Mode","Window");
+        {HotkeySettingsDialog saved;auto* snap=saved.findChild<QComboBox*>("snapMode");QVERIFY(snap);QCOMPARE(snap->currentData().toString(),QString("Window"));saved.reject();}
+        QCOMPARE(cfg.value("Snapping/Mode").toString(),QString("Window"));
+        cfg.remove("Snapping/Mode");
         HotkeySettingsDialog dialog;dialog.show();auto* pages=dialog.findChild<QTabWidget*>("settingsPages");QVERIFY(pages);dialog.openPlugins();QCOMPARE(pages->currentIndex(),6);QVERIFY(!dialog.findChildren<PluginCardWidget*>().isEmpty());
         QDir().mkpath("screenshots");for(auto mode:{ThemeMode::Light,ThemeMode::Dark}){ThemeManager::instance().setThemeMode(mode);for(int index:{5,6,7,1}){pages->setCurrentIndex(index);QApplication::processEvents();QVERIFY(dialog.grab().save(QString("screenshots/phase5-settings-%1-%2.png").arg(index).arg(mode==ThemeMode::Light?"light":"dark")));}}
     }
     void selectionCursorOutside() {
         if (QGuiApplication::platformName() != "windows") QSKIP("Requires a native screenshot surface");
-        QSettings(QSettings::defaultFormat(), QSettings::UserScope, "Evan", "Evan").setValue("Snapping/EnableSmartSnapping", false);
+        QSettings(QSettings::defaultFormat(), QSettings::UserScope, "AccuShot", "AccuShot").setValue("Snapping/EnableSmartSnapping", false);
         auto& overlay = SnippingOverlay::instance();
         const auto cleanup = qScopeGuard([&] {
             if (auto* focused = QApplication::focusWidget()) focused->clearFocus();
@@ -756,7 +788,7 @@ private slots:
             magnifier.show();
             QVERIFY(magnifier.grab().save("screenshots/magnifier-" + suffix + ".png"));
             for (auto* w : QApplication::topLevelWidgets()) {
-                if (w->windowTitle() == "Evan 长截图" || w->windowTitle() == "Evan GIF 录制")
+                if (w->windowTitle() == "AccuShot 长截图" || w->windowTitle() == "AccuShot GIF 录制")
                     QVERIFY(w->grab().save("screenshots/" + QString(w->windowTitle().contains("GIF") ? "gif-" : "scroll-") + suffix + ".png"));
             }
             HotkeySettingsDialog settingsDialog; settingsDialog.show();
@@ -1006,7 +1038,7 @@ private slots:
         const QRect text(260, 220, 90, 40), icon(290, 230, 24, 24);
         const auto pendingPoll = overlay.m_snapper.findCandidatesAt(point);
         const auto context = overlay.m_snapper.candidateContext();
-        // The complete card leads relevance ranking, but sits between smaller details and a window by area.
+        // The complete card leads priority ranking, but sits between smaller details and a window by area.
         const std::vector<QRect> ranked = {card, window, text, icon};
         QVERIFY(pendingPoll != ranked);
         QVERIFY(overlay.applySmartCandidates(point, ranked, context));
@@ -1018,7 +1050,7 @@ private slots:
             QApplication::sendEvent(&overlay, &event);
         };
         QCOMPARE(candidate(), card);
-        // The first wheel event starts at the relevance winner, even if a pending poll offers another list.
+        // The first wheel event starts at the priority winner, even if a pending poll offers another list.
         wheel(-120); QCOMPARE(candidate(), text);
         QVERIFY(overlay.m_candidatesManuallyChosen);
         QCOMPARE(overlay.m_smartCandidates, ranked);
@@ -1037,7 +1069,7 @@ private slots:
         wheel(120); QCOMPARE(candidate(), text);
         QCOMPARE(overlay.m_smartCandidates, ranked);
 
-        // Tab walks relevance ranking from the selected rectangle's original index, including wrap.
+        // Tab walks priority ranking from the selected rectangle's original index, including wrap.
         QKeyEvent tab(QEvent::KeyPress, Qt::Key_Tab, Qt::NoModifier);
         overlay.keyPressEvent(&tab); QCOMPARE(candidate(), icon);
         overlay.keyPressEvent(&tab); QCOMPARE(candidate(), card);
@@ -1513,11 +1545,13 @@ private slots:
             QCursor::setPos(previousCursor);HotkeyConfig::instance().setData(original);
             QApplication::processEvents();
         });
-        QSettings cfg(QSettings::defaultFormat(),QSettings::UserScope,"Evan","Evan");
+        QSettings cfg(QSettings::defaultFormat(),QSettings::UserScope,"AccuShot","AccuShot");
         cfg.setValue("Snapping/EnableSmartSnapping",true);
-        for(const QString mode:{QString("Window"),QString("Element"),QString("Hybrid"),QString("Contour")}) {
-            cfg.setValue("Snapping/Mode",mode);
+        for(const QString mode:{QString(),QString("Window"),QString("Element"),QString("Hybrid"),QString("Contour")}) {
+            if(mode.isEmpty()) cfg.remove("Snapping/Mode");
+            else cfg.setValue("Snapping/Mode",mode);
             QCursor::setPos(fixture.geometry().center());overlay.startSnipping();
+            if(mode.isEmpty()) QVERIFY(overlay.findChild<QFutureWatcherBase*>("contourAnalysis"));
             const QPoint point=overlay.mapFromGlobal(fixture.geometry().center());
             const QRect screen(QPoint(),overlay.m_snapshot.virtualGeometry.size());
             // Full-screen navigation must work immediately, before CV/UIA completes.
@@ -1549,7 +1583,7 @@ private slots:
         const QPoint previousCursor=QCursor::pos();
         const auto cleanup=qScopeGuard([&]{overlay.triggerCancelAction();fixture.hide();QCursor::setPos(previousCursor);QApplication::processEvents();});
         QCursor::setPos(fixture.geometry().center());
-        QSettings cfg(QSettings::defaultFormat(),QSettings::UserScope,"Evan","Evan");
+        QSettings cfg(QSettings::defaultFormat(),QSettings::UserScope,"AccuShot","AccuShot");
         cfg.setValue("Snapping/Mode","Contour");cfg.setValue("Snapping/EnableSmartSnapping",true);
         // Cancel an in-flight capture, then start another; only its result may be applied.
         overlay.startSnipping();
@@ -1592,7 +1626,7 @@ private slots:
         QDialog settingsDialog;settingsDialog.setWindowModality(Qt::ApplicationModal);settingsDialog.show();
         auto& overlay=SnippingOverlay::instance();
         const auto cleanup=qScopeGuard([&]{overlay.triggerCancelAction();settingsDialog.hide();fixture.kill();fixture.waitForFinished(2000);});
-        auto cfg=QSettings(QSettings::defaultFormat(),QSettings::UserScope,"Evan","Evan");cfg.setValue("Snapping/Mode","Window");cfg.setValue("Snapping/EnableSmartSnapping",true);
+        auto cfg=QSettings(QSettings::defaultFormat(),QSettings::UserScope,"AccuShot","AccuShot");cfg.setValue("Snapping/Mode","Window");cfg.setValue("Snapping/EnableSmartSnapping",true);
         overlay.startSnipping();QApplication::processEvents();QVERIFY(overlay.isVisible());
         const auto hwnd=reinterpret_cast<HWND>(overlay.winId());
         QVERIFY2(IsWindowEnabled(hwnd),"Modal settings blocks screenshot mouse input");
@@ -1610,7 +1644,7 @@ private slots:
     }
     void nativeScreenTranslationEntry() {
         if (QGuiApplication::platformName() != "windows") QSKIP("Requires native Windows screenshot overlay");
-        QSettings cfg(QSettings::defaultFormat(), QSettings::UserScope, "Evan", "Evan");
+        QSettings cfg(QSettings::defaultFormat(), QSettings::UserScope, "AccuShot", "AccuShot");
         cfg.setValue("Snapping/EnableSmartSnapping", false);
         OcrManager::instance().setPreferredEngineType("RapidOCR");
         TranslationPluginManager::instance().setPreferredEnginePreference("Offline");
@@ -1758,7 +1792,7 @@ private slots:
         auto& theme = ThemeManager::instance();
         theme.setThemeMode(ThemeMode::Light);
         theme.setResultFontSize(15);
-        QSettings saved(QSettings::defaultFormat(), QSettings::UserScope, "Evan", "Evan");
+        QSettings saved(QSettings::defaultFormat(), QSettings::UserScope, "AccuShot", "AccuShot");
         {
             HotkeySettingsDialog dialog;
             auto* mode = dialog.findChild<QComboBox*>("themeMode");
@@ -1939,7 +1973,7 @@ private slots:
         clear.findChild<QPushButton*>("settingsSave")->click();
         QCOMPARE(clear.result(), int(QDialog::Accepted)); HotkeyConfig::instance().load();
         QVERIFY(HotkeyConfig::instance().data().snippingShrinkCandidate.isEmpty());
-        QSettings cfg(QSettings::defaultFormat(), QSettings::UserScope, "Evan", "Evan");
+        QSettings cfg(QSettings::defaultFormat(), QSettings::UserScope, "AccuShot", "AccuShot");
         for (int invalid : {0, 100}) {
             cfg.setValue("Hotkey/SnippingCandidateResizeStep", invalid); cfg.sync();
             HotkeyConfig::instance().load();

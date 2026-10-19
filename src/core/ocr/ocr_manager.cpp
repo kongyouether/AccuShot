@@ -23,14 +23,14 @@ bool OcrManager::isRapidOcrReady() const
 
 QString OcrManager::preferredEngineType() const
 {
-    QSettings settings(QSettings::defaultFormat(), QSettings::UserScope, "Evan", "Evan");
+    QSettings settings(QSettings::defaultFormat(), QSettings::UserScope, "AccuShot", "AccuShot");
     // 默认首选 RapidOCR
     return settings.value("Ocr/Engine", "RapidOCR").toString();
 }
 
 void OcrManager::setPreferredEngineType(const QString& type)
 {
-    QSettings settings(QSettings::defaultFormat(), QSettings::UserScope, "Evan", "Evan");
+    QSettings settings(QSettings::defaultFormat(), QSettings::UserScope, "AccuShot", "AccuShot");
     settings.setValue("Ocr/Engine", type);
     emit engineChanged(activeEngineName());
 }

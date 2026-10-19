@@ -11,7 +11,7 @@
 #include <windows.h>
 #include <wincred.h>
 namespace {
-QSettings settings() { return QSettings(QSettings::defaultFormat(), QSettings::UserScope, "Evan", "Evan"); }
+QSettings settings() { return QSettings(QSettings::defaultFormat(), QSettings::UserScope, "AccuShot", "AccuShot"); }
 QMap<QString,QString> testSecrets;
 QString imageData(const QImage& image) {
     QByteArray bytes; QBuffer buffer(&bytes); buffer.open(QIODevice::WriteOnly); image.save(&buffer,"PNG");
@@ -20,7 +20,7 @@ QString imageData(const QImage& image) {
 }
 QString AiService::secret(const QString& id) {
     if (QSettings::defaultFormat() != QSettings::NativeFormat) return testSecrets.value(id);
-    const auto target = ("Evan/AI/" + id).toStdWString(); PCREDENTIALW cred = nullptr;
+    const auto target = ("AccuShot/AI/" + id).toStdWString(); PCREDENTIALW cred = nullptr;
     if (!CredReadW(target.c_str(), CRED_TYPE_GENERIC, 0, &cred)) return {};
     const QString result = QString::fromUtf8(reinterpret_cast<const char*>(cred->CredentialBlob), cred->CredentialBlobSize);
     CredFree(cred); return result;
@@ -31,7 +31,7 @@ bool AiService::isLocalProfile(const AiProfile& profile) {
 }
 bool AiService::saveSecret(const QString& id, const QString& key) {
     if (QSettings::defaultFormat() != QSettings::NativeFormat) { testSecrets[id] = key; return true; }
-    auto target = ("Evan/AI/" + id).toStdWString();
+    auto target = ("AccuShot/AI/" + id).toStdWString();
     if (key.isEmpty()) { CredDeleteW(target.c_str(), CRED_TYPE_GENERIC, 0); return true; }
     const auto bytes = key.toUtf8(); CREDENTIALW cred{};
     cred.Type = CRED_TYPE_GENERIC; cred.TargetName = target.data(); cred.Persist = CRED_PERSIST_LOCAL_MACHINE;

@@ -646,9 +646,9 @@ private slots:
     }
 
     void realLocalThreeWay() {
-        if (!qEnvironmentVariableIsSet("EVAN_THREE_WAY_REAL_LOCAL"))
+        if (!qEnvironmentVariableIsSet("ACCUSHOT_THREE_WAY_REAL_LOCAL"))
             QSKIP("Opt-in actual RapidOCR + installed Argos only; run beside build-release/plugins");
-        QVERIFY(qEnvironmentVariable("EVAN_PLUGIN_OFFLINE_TEST") == "1");
+        QVERIFY(qEnvironmentVariable("ACCUSHOT_PLUGIN_OFFLINE_TEST") == "1");
         QVERIFY(OcrManager::instance().isRapidOcrReady());
         QVERIFY(TranslationPluginManager::instance().isOfflinePluginReady());
         OcrManager::instance().setPreferredEngineType("RapidOCR");

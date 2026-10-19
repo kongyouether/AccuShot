@@ -55,7 +55,7 @@ public:
     // 1: 模式 A (Ctrl+Enter 确定, Enter 换行)
     int commitMode() const
     {
-        QSettings settings("Evan", "Evan");
+        QSettings settings("AccuShot", "AccuShot");
         return settings.value("Annotation/TextCommitMode", 0).toInt();
     }
 

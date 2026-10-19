@@ -23,7 +23,7 @@ int overlappingWindows(QApplication& app) {
  const auto values=QString::fromUtf8(fixture.readLine()).trimmed().split(' ');
  if(values.size()!=3)return 3;
  const auto back=reinterpret_cast<HWND>(values[0].toULongLong());
- WNDCLASSW wc{};wc.lpfnWndProc=DefWindowProcW;wc.hInstance=GetModuleHandleW(nullptr);wc.lpszClassName=L"EvanOcclusionTest";RegisterClassW(&wc);
+ WNDCLASSW wc{};wc.lpfnWndProc=DefWindowProcW;wc.hInstance=GetModuleHandleW(nullptr);wc.lpszClassName=L"AccuShotOcclusionTest";RegisterClassW(&wc);
  const auto front=CreateWindowExW(WS_EX_TOPMOST,wc.lpszClassName,L"Front",WS_POPUP|WS_VISIBLE,170,180,180,180,nullptr,nullptr,wc.hInstance,nullptr);
  const auto button=CreateWindowW(L"BUTTON",L"Visible",WS_CHILD|WS_VISIBLE,10,30,100,40,front,nullptr,wc.hInstance,nullptr);
  const auto overlay=CreateWindowExW(WS_EX_TOPMOST,wc.lpszClassName,L"Excluded overlay",WS_POPUP|WS_VISIBLE,100,100,800,600,nullptr,nullptr,wc.hInstance,nullptr);
@@ -83,8 +83,8 @@ int overlappingWindows(QApplication& app) {
 int main(int argc,char** argv){
  SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
  if(argc>1&&QString::fromLocal8Bit(argv[1])=="fixture"){
-   WNDCLASSW wc{};wc.lpfnWndProc=DefWindowProcW;wc.hInstance=GetModuleHandleW(nullptr);wc.lpszClassName=L"EvanSnapTest";RegisterClassW(&wc);
-   HWND window=CreateWindowW(wc.lpszClassName,L"Evan 吸附测试",WS_OVERLAPPEDWINDOW,150,150,500,350,nullptr,nullptr,wc.hInstance,nullptr);
+   WNDCLASSW wc{};wc.lpfnWndProc=DefWindowProcW;wc.hInstance=GetModuleHandleW(nullptr);wc.lpszClassName=L"AccuShotSnapTest";RegisterClassW(&wc);
+   HWND window=CreateWindowW(wc.lpszClassName,L"AccuShot 吸附测试",WS_OVERLAPPEDWINDOW,150,150,500,350,nullptr,nullptr,wc.hInstance,nullptr);
    HWND child=CreateWindowW(L"BUTTON",L"Test control",WS_CHILD|WS_VISIBLE|BS_PUSHBUTTON,40,60,180,50,window,reinterpret_cast<HMENU>(101),wc.hInstance,nullptr);
    // A large sibling without descendants comes first, like Chromium's D3D pane.
    HWND pane=CreateWindowW(L"STATIC",L"",WS_CHILD|WS_VISIBLE,0,0,450,280,window,nullptr,wc.hInstance,nullptr);
