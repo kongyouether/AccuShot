@@ -22,6 +22,8 @@ if ($Deploy) {
     New-Item -ItemType Directory -Path $destination -Force | Out-Null
     Copy-Item -LiteralPath "$build\AccuShot.exe" -Destination "$destination\AccuShot.exe"
     Copy-Item -LiteralPath "$build\AccuShot.pdb" -Destination "$destination\AccuShot.pdb"
+    New-Item -ItemType Directory -Force "$destination/tools/7zip" | Out-Null
+    Get-ChildItem -LiteralPath "$repo/tools/7zip" -File | Copy-Item -Destination "$destination/tools/7zip" -Force
     & "$qt\bin\windeployqt.exe" --release --no-translations "$destination\AccuShot.exe"
     if ($LASTEXITCODE) { throw 'Qt deployment failed.' }
 }

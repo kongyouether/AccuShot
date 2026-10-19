@@ -1,5 +1,7 @@
 #include "plugin_manager.h"
 #include "local_plugin.h"
+#include "plugin_archive.h"
+#include <QSaveFile>
 #include "../ocr/rapid_ocr_engine.h"
 #include "../translation/translation_plugin_manager.h"
 #include <QCoreApplication>
@@ -25,6 +27,18 @@ PluginManager::PluginManager(QObject* parent)
 {
     QNetworkProxyFactory::setUseSystemConfiguration(true);
     m_nam = std::make_unique<QNetworkAccessManager>(this);
+    m_pythonInstaller = new PythonInstaller(m_nam.get(), this);
+    connect(m_pythonInstaller, &PythonInstaller::changed, this, &PluginManager::pythonRuntimesChanged);
+    connect(m_pythonInstaller, &PythonInstaller::finished, this, [this](bool success) {
+        if (success) {
+            // The installer exit code alone does not establish interpreter readiness.
+            m_selectPythonAfterInstall = true;
+            detectPython();
+        } else {
+            const auto pending = m_pendingPythonInstalls; m_pendingPythonInstalls.clear();
+            for (const auto& id : pending) failInstall(id, m_pythonInstaller->message());
+        }
+    });
     initCatalog();
     refreshAllStatus();
 }
@@ -137,28 +151,15 @@ void PluginManager::installPlugin(const QString& id)
     }
 
     if(info.id!="rapidocr-engine") {
-        const auto destination=LocalPlugin::directory(id);
-        const auto installer=pluginRootDir()+"/.installer";
-        QDir().mkpath(installer);
-        for(const auto& name:{"install.py","runner.py"}) {
-            QFile::remove(installer+"/"+name);
-            QFile::copy(QString(":/local_plugins/")+name,installer+"/"+name);
+        info.status = PluginStatus::Extracting;
+        info.statusMessage = "正在检测 Python 3.12（64 位）…";
+        emit pluginStatusChanged(id, info.status, info.statusMessage);
+        if (m_selectedPython >= 0 && !m_detectingPython)
+            installPythonPlugin(id, m_pythonRuntimes[m_selectedPython]);
+        else {
+            m_pendingPythonInstalls.append(id);
+            detectPython();
         }
-        info.status=PluginStatus::Extracting;info.statusMessage="正在安装依赖和模型，请稍候（需要 Python 3.12）…";
-        emit pluginStatusChanged(id,info.status,info.statusMessage);
-        auto* process=new QProcess(this);
-        auto* log=new QFile(destination+"-install.log",process);QDir().mkpath(pluginRootDir());log->open(QIODevice::WriteOnly);
-        process->setProcessChannelMode(QProcess::MergedChannels);
-        connect(process,&QProcess::readyReadStandardOutput,this,[process,log]{log->write(process->readAllStandardOutput());log->flush();});
-        connect(process,&QProcess::errorOccurred,this,[this,id](QProcess::ProcessError error){
-            if(error!=QProcess::FailedToStart)return;
-            for(auto& p:m_plugins)if(p.id==id){p.status=PluginStatus::Failed;p.statusMessage="无法启动 Python 3.12，请安装 Python 后重试。";emit pluginStatusChanged(id,p.status,p.statusMessage);}
-        });
-        connect(process,qOverload<int,QProcess::ExitStatus>(&QProcess::finished),this,[this,id,process](int code,QProcess::ExitStatus){
-            for(auto& p:m_plugins)if(p.id==id){updateSinglePluginStatus(p);if(code!=0||p.status!=PluginStatus::Installed){p.status=PluginStatus::Failed;p.statusMessage="安装失败，查看 plugins/"+id+"-install.log";}emit pluginStatusChanged(id,p.status,p.statusMessage);}
-            TranslationPluginManager::instance().refreshPlugins();emit pluginsRefreshed();process->deleteLater();
-        });
-        process->start("py",{"-3.12",installer+"/install.py","--id",id,"--destination",destination});
         return;
     }
 
@@ -284,10 +285,11 @@ void PluginManager::installPlugin(const QString& id)
         QString destDir = appDir + "/" + p.installSubdir;
 
         QThreadPool::globalInstance()->start([this, id, tempZip, destDir]() {
-            bool ok = extractZipArchive(tempZip, destDir);
+            QString error;
+            bool ok = extractZipArchive(tempZip, destDir, error);
             QFile::remove(tempZip);
 
-            QMetaObject::invokeMethod(this, [this, id, ok]() {
+            QMetaObject::invokeMethod(this, [this, id, ok, error]() {
                 int i = -1;
                 for (int k = 0; k < m_plugins.size(); ++k) {
                     if (m_plugins[k].id == id) {
@@ -309,7 +311,7 @@ void PluginManager::installPlugin(const QString& id)
                     TranslationPluginManager::instance().refreshPlugins();
                 } else {
                     info.status = PluginStatus::Failed;
-                    info.statusMessage = "自动解压失败，请检查目录权限或手动解压。";
+                    info.statusMessage = error;
                     emit pluginStatusChanged(id, PluginStatus::Failed, info.statusMessage);
                 }
             }, Qt::QueuedConnection);
@@ -364,7 +366,8 @@ bool PluginManager::installFromLocalZip(const QString& zipPath, const QString& t
     QString appDir = QCoreApplication::applicationDirPath();
     QString destDir = appDir + "/" + p.installSubdir;
 
-    bool ok = extractZipArchive(zipPath, destDir);
+    QString error;
+    bool ok = extractZipArchive(zipPath, destDir, error);
     if (ok) {
         updateSinglePluginStatus(p);
         if(p.status != PluginStatus::Installed) {p.status=PluginStatus::Failed;p.statusMessage="插件包缺少引擎或模型";emit pluginStatusChanged(p.id,p.status,p.statusMessage);return false;}
@@ -376,7 +379,7 @@ bool PluginManager::installFromLocalZip(const QString& zipPath, const QString& t
         return true;
     } else {
         p.status = PluginStatus::Failed;
-        p.statusMessage = "本地 ZIP 解压失败，请检查压缩包是否完整";
+        p.statusMessage = error;
         emit pluginStatusChanged(p.id, PluginStatus::Failed, p.statusMessage);
         return false;
     }
@@ -415,29 +418,152 @@ bool PluginManager::uninstallPlugin(const QString& id)
     return removed;
 }
 
-bool PluginManager::extractZipArchive(const QString& zipPath, const QString& destDir)
+bool PluginManager::extractZipArchive(const QString& zipPath, const QString& destDir, QString& error)
 {
-    QDir().mkpath(destDir);
+    const bool ok = PluginArchive::extract(zipPath, destDir, error);
+    if (!ok) qWarning().noquote() << "[PluginInstall]" << error;
+    return ok;
+}
 
-    // 方案 1: Windows 10/11 内置的高性能 bsdtar (无任何外部依赖，极速秒解)
-    QProcess process;
-    QStringList args;
-    args << "-xf" << QDir::toNativeSeparators(zipPath)
-         << "-C" << QDir::toNativeSeparators(destDir);
-
-    process.start("tar.exe", args);
-    if (process.waitForFinished(60000) && process.exitCode() == 0) {
-        return true;
+void PluginManager::failInstall(const QString& id, const QString& message)
+{
+    qWarning().noquote() << "[PluginInstall]" << id << message;
+    for (auto& p : m_plugins) if (p.id == id) {
+        p.status = PluginStatus::Failed; p.statusMessage = message;
+        emit pluginStatusChanged(id, p.status, message);
     }
+}
 
-    // 方案 2: 若 tar 异常，优雅降级为 PowerShell Expand-Archive
-    QString psCmd = QString("Expand-Archive -Path '%1' -DestinationPath '%2' -Force")
-                    .arg(QDir::toNativeSeparators(zipPath), QDir::toNativeSeparators(destDir));
-    QProcess ps;
-    ps.start("powershell.exe", {"-NoProfile", "-NonInteractive", "-Command", psCmd});
-    if (ps.waitForFinished(90000) && ps.exitCode() == 0) {
-        return true;
+void PluginManager::detectPython(const QString& manualPath)
+{
+    if (m_detectingPython || pythonInstallRunning()) return;
+    m_detectingPython = true;
+    m_pythonMessage = "正在检测系统和 Conda 中的 Python 3.12…";
+    emit pythonRuntimesChanged();
+    const bool selectDetected = m_selectPythonAfterInstall; m_selectPythonAfterInstall = false;
+    const auto preferred = selectDetected ? PythonRuntime{} : PythonRuntime::fromJson(QJsonDocument::fromJson(
+        QSettings().value("plugins/pythonRuntime").toByteArray()).object());
+    QThreadPool::globalInstance()->start([this, preferred, manualPath, selectDetected] {
+        const auto found = PythonDiscovery::discover(manualPath.isEmpty() ? preferred : PythonRuntime{}, manualPath);
+        QMetaObject::invokeMethod(this, [this, found, preferred, manualPath, selectDetected] {
+            m_detectingPython = false;
+            m_pythonDetectionComplete = true;
+            m_pythonRuntimes = found.runtimes;
+            m_selectedPython = -1;
+            // A saved explicit selection must not silently switch to a different environment.
+            for (int i = 0; i < m_pythonRuntimes.size(); ++i)
+                if (((!manualPath.isEmpty() || preferred.executable.isEmpty()) && m_selectedPython < 0)
+                    || m_pythonRuntimes[i].executable.compare(preferred.executable, Qt::CaseInsensitive) == 0)
+                    m_selectedPython = i;
+            m_pythonMessage = m_selectedPython >= 0 ? m_pythonRuntimes[m_selectedPython].label()
+                : "未找到所需 Python 3.12（64 位），请选择已有环境或安装 Python";
+            if (m_selectedPython < 0 && !found.errors.isEmpty()) m_pythonMessage += "\n" + found.errors.join("\n");
+            if ((!manualPath.isEmpty() || selectDetected) && m_selectedPython >= 0) selectPython(m_selectedPython);
+            emit pythonRuntimesChanged();
+            const auto pending = m_pendingPythonInstalls; m_pendingPythonInstalls.clear();
+            for (const auto& id : pending) {
+                if (m_selectedPython >= 0) installPythonPlugin(id, m_pythonRuntimes[m_selectedPython]);
+                else failInstall(id, m_pythonMessage);
+            }
+        }, Qt::QueuedConnection);
+    });
+}
+
+void PluginManager::selectPython(int index)
+{
+    if (m_detectingPython || index < 0 || index >= m_pythonRuntimes.size()) return;
+    m_selectedPython = index;
+    QSettings().setValue("plugins/pythonRuntime", QJsonDocument(m_pythonRuntimes[index].toJson()).toJson(QJsonDocument::Compact));
+    m_pythonMessage = m_pythonRuntimes[index].label();
+    emit pythonRuntimesChanged();
+}
+
+void PluginManager::installPythonRuntime()
+{
+    if (m_detectingPython || pythonInstallRunning()) return;
+    if (!m_pythonDetectionComplete) { detectPython(); return; }
+    if (!m_pythonRuntimes.isEmpty()) {
+        m_pythonMessage = "已找到可用的 Python 3.12，请选择已有环境";
+        emit pythonRuntimesChanged(); return;
     }
+    m_pythonInstaller->start();
+}
 
-    return false;
+QString PluginManager::pythonInstallMessage() const
+{
+    if (!m_pythonInstaller->succeeded()) return m_pythonInstaller->message();
+    if (m_detectingPython) return "Python 安装程序已完成，正在验证环境…";
+    return m_selectedPython >= 0 ? "Python 已就绪，可以安装插件"
+        : "安装程序已结束，但未找到可用 Python 3.12，请重新检测或手动选择环境";
+}
+
+void PluginManager::installPythonPlugin(const QString& id, const PythonRuntime& runtime)
+{
+    const auto destination = LocalPlugin::directory(id);
+    // Per-plugin scripts avoid races when two plugins are installed together.
+    if (!QDir().mkpath(destination)) { failInstall(id, "无法创建插件目录：" + destination); return; }
+    for (const auto& name : {"install.py", "runner.py"}) {
+        const auto target = destination + "/" + name;
+        if ((QFile::exists(target) && !QFile::remove(target))
+            || !QFile::copy(QString(":/local_plugins/") + name, target)) {
+            failInstall(id, "无法写入安装脚本：" + target); return;
+        }
+    }
+    // The installer commits runtime.json only after preparing a usable private venv.
+    const auto runtimeFile = destination + "/install-runtime.json";
+    QSaveFile config(runtimeFile);
+    const auto data = QJsonDocument(runtime.toJson()).toJson();
+    if (!config.open(QIODevice::WriteOnly) || config.write(data) != data.size() || !config.commit()) {
+        failInstall(id, "无法写入 Python 环境信息：" + runtimeFile); return;
+    }
+    auto* process = new QProcess(this);
+    auto* log = new QFile(destination + "-install.log", process);
+    if (!log->open(QIODevice::WriteOnly)) {
+        failInstall(id, "无法创建安装日志：" + log->fileName()); process->deleteLater(); return;
+    }
+    log->write((runtime.label() + "\n" + runtime.executable + "\n").toUtf8());
+    process->setProcessChannelMode(QProcess::MergedChannels);
+    auto pendingOutput = std::make_shared<QByteArray>();
+    const auto readOutput = [this, id, process, log, pendingOutput] {
+        const auto output = process->readAllStandardOutput(); log->write(output); log->flush();
+        pendingOutput->append(output);
+        while (pendingOutput->contains('\n')) {
+            const auto end = pendingOutput->indexOf('\n');
+            const auto line = pendingOutput->left(end); pendingOutput->remove(0, end + 1);
+            if (!line.startsWith("ACCUSHOT_STAGE:")) continue;
+            for (auto& p : m_plugins) if (p.id == id) {
+                p.statusMessage = QString::fromUtf8(line.mid(15)).trimmed();
+                emit pluginStatusChanged(id, p.status, p.statusMessage);
+            }
+        }
+    };
+    connect(process, &QProcess::readyReadStandardOutput, this, readOutput);
+    connect(process, &QProcess::errorOccurred, this, [this, id, process, log](QProcess::ProcessError error) {
+        if (error != QProcess::FailedToStart) return;
+        const auto message = "无法启动所选 Python 环境：" + process->errorString();
+        log->write(message.toUtf8()); log->flush(); failInstall(id, message); process->deleteLater();
+    });
+    connect(process, qOverload<int,QProcess::ExitStatus>(&QProcess::finished), this,
+        [this, id, process, log, readOutput](int code, QProcess::ExitStatus status) {
+        readOutput(); log->close();
+        for (auto& p : m_plugins) if (p.id == id) {
+            updateSinglePluginStatus(p);
+            if (code != 0 || status != QProcess::NormalExit || p.status != PluginStatus::Installed) {
+                QFile details(log->fileName());
+                QString tail;
+                if (details.open(QIODevice::ReadOnly)) {
+                    if (details.size() > 4000) details.seek(details.size() - 4000);
+                    tail = QString::fromUtf8(details.readAll()).right(1200);
+                }
+                failInstall(id, "安装失败，日志：" + log->fileName() + "\n" + tail);
+            } else emit pluginStatusChanged(id, p.status, p.statusMessage);
+        }
+        TranslationPluginManager::instance().refreshPlugins(); emit pluginsRefreshed(); process->deleteLater();
+    });
+    for (auto& p : m_plugins) if (p.id == id) {
+        p.statusMessage = "准备插件独立环境：" + runtime.label();
+        emit pluginStatusChanged(id, p.status, p.statusMessage);
+    }
+    runtime.start(*process, runtime.executable, {"-I", destination + "/install.py", "--id", id,
+        "--destination", destination, "--runtime-config", runtimeFile});
 }

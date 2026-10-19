@@ -8,6 +8,8 @@ get_filename_component(ACCUSHOT_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../.." ABSOLUT
 file(GLOB_RECURSE SOURCES "${ACCUSHOT_ROOT}/src/*.cpp" "${ACCUSHOT_ROOT}/src/*.h")
 list(REMOVE_ITEM SOURCES "${ACCUSHOT_ROOT}/src/main.cpp")
 add_executable(result_ui result_ui.cpp ${SOURCES} "${ACCUSHOT_ROOT}/resources/resources.qrc")
+include("${ACCUSHOT_ROOT}/scripts/bundle_plugin_tools.cmake")
+accushot_bundle_plugin_tools(result_ui "${ACCUSHOT_ROOT}")
 target_include_directories(result_ui PRIVATE "${ACCUSHOT_ROOT}/src")
 target_link_libraries(result_ui PRIVATE Qt6::Core Qt6::Gui Qt6::Svg Qt6::Widgets Qt6::Network Qt6::Test user32 gdi32 ole32 uiautomationcore dwmapi windowsapp runtimeobject advapi32 dbghelp)
 target_compile_options(result_ui PRIVATE /utf-8 /permissive- /W4)

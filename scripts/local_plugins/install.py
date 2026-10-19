@@ -7,6 +7,10 @@ import subprocess
 import sys
 import venv
 
+
+def stage(message):
+    print("ACCUSHOT_STAGE:" + message, flush=True)
+
 PACKAGES = {
     "translation-en-zh": ["argostranslate==1.11.0"],
     "latex-ocr-engine": ["rapid-latex-ocr==0.0.9", "requests>=2.32,<3"],
@@ -16,20 +20,42 @@ PACKAGES = {
 }
 
 
+def prepare_environment(root):
+    python = root / "venv/Scripts/python.exe"
+    stage("创建并验证插件独立环境")
+    if not python.exists():
+        venv.EnvBuilder(with_pip=True).create(root / "venv")
+    # A stale venv must not silently keep using a different base interpreter.
+    probe = subprocess.run([str(python), "-I", "-c",
+        "import sys,ssl,struct,json; print(json.dumps([sys.base_prefix,list(sys.version_info[:2]),struct.calcsize('P')*8]))"],
+        check=True, capture_output=True, text=True, encoding="utf-8")
+    base, version, bits = json.loads(probe.stdout)
+    if Path(base).resolve() != Path(sys.base_prefix).resolve() or version != [3, 12] or bits != 64:
+        raise RuntimeError("插件环境与所选 Python 3.12 不一致，请卸载此插件后重新安装")
+    subprocess.run([str(python), "-I", "-m", "pip", "--version"], check=True)
+    return python
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--id", choices=PACKAGES, required=True)
     parser.add_argument("--destination", type=Path, required=True)
+    parser.add_argument("--runtime-config", type=Path)
     args = parser.parse_args()
     root = args.destination.resolve()
     root.mkdir(parents=True, exist_ok=True)
     marker = root / "installed.json"
     marker.unlink(missing_ok=True)
-    python = root / "venv/Scripts/python.exe"
-    if not python.exists():
-        venv.EnvBuilder(with_pip=True).create(root / "venv")
-    subprocess.run([str(python), "-m", "pip", "install", *PACKAGES[args.id]], check=True)
-    shutil.copyfile(Path(__file__).with_name("runner.py"), root / "runner.py")
+    python = prepare_environment(root)
+    runtime = json.loads(args.runtime_config.read_text(encoding="utf-8")) if args.runtime_config else {
+        "executable": sys.executable, "version": ".".join(map(str, sys.version_info[:3])), "conda": "", "prefix": ""}
+    (root / "runtime.json").write_text(json.dumps(runtime), encoding="utf-8")
+    stage("安装插件依赖")
+    subprocess.run([str(python), "-I", "-m", "pip", "install", *PACKAGES[args.id]], check=True)
+    source = Path(__file__).with_name("runner.py")
+    if source.resolve() != (root / "runner.py").resolve():
+        shutil.copyfile(source, root / "runner.py")
+    stage("下载模型并验证初始化")
     subprocess.run([str(python), str(root / "runner.py"), "--backend", args.id, "--prepare"], check=True)
     if args.id == "pix2text-page":
         subprocess.run([str(python), str(root / "runner.py"), "--backend", args.id, "--verify"], check=True)

@@ -30,9 +30,9 @@
 
 ## 下载与运行
 
-**[下载 AccuShot v1.2.2 · Windows x64 便携版](https://github.com/kongyouether/AccuShot/releases/download/v1.2.2/AccuShot-v1.2.2-windows-x64-portable.zip)**
+**[下载 AccuShot v1.2.3 · Windows x64 便携版](https://github.com/kongyouether/AccuShot/releases/download/v1.2.3/AccuShot-v1.2.3-windows-x64-portable.zip)**
 
-[查看 Release 与更新说明](https://github.com/kongyouether/AccuShot/releases/tag/v1.2.2) · [下载 SHA256 校验文件](https://github.com/kongyouether/AccuShot/releases/download/v1.2.2/SHA256SUMS.txt)
+[查看 Release 与更新说明](https://github.com/kongyouether/AccuShot/releases/tag/v1.2.3) · [下载 SHA256 校验文件](https://github.com/kongyouether/AccuShot/releases/download/v1.2.3/SHA256SUMS.txt)
 
 1. 下载 ZIP，**完整解压**到有写入权限的目录。
 2. 双击 `AccuShot.exe`，在任务栏右下角托盘找到程序。
@@ -40,7 +40,7 @@
 
 便携包包含主程序、Qt 与 VC++ 运行库、中文使用说明及第三方许可材料。基础截图、标注和贴图不需要另装 Qt、Visual Studio 或 Python；请保留 EXE 旁的 DLL 和插件目录，不要只复制 EXE。
 
-AI 模型不随包提供，可在设置中按需安装；部分本地插件需要 Python 3.12，在线能力需要自行配置账号。当前包在 Windows 11 x64 上完成构建和运行依赖验证，尚未在另一台干净电脑上完成全功能验收。
+主程序便携包不内置 AI 模型，可在设置中按需安装；Release 另提供全部本地插件的模型预置包、RapidOCR 原包及 Python / 7-Zip 安装材料，使用方法见 [附件说明](https://github.com/kongyouether/AccuShot/releases/download/v1.2.3/PLUGIN_ASSETS.md)。模型预置包仍需联网安装 Python 依赖；部分本地插件需要 Python 3.12，在线能力需要自行配置账号。当前正式发布包在 Windows 11 x64 上完成构建和运行依赖验证，尚未在另一台干净电脑上完成全功能验收。
 
 > “便携”表示免安装、解压运行。设置仍保存在 Windows 当前用户配置中，日志位于 `%LOCALAPPDATA%\AccuShot\AccuShot\logs`；首次运行默认开启自启动，可在设置中关闭。更新前请从托盘退出旧版本。
 
@@ -52,7 +52,7 @@ AI 模型不随包提供，可在设置中按需安装；部分本地插件需�
 下载 ZIP 和 `SHA256SUMS.txt` 到同一文件夹，在 PowerShell 中执行：
 
 ```powershell
-Get-FileHash .\AccuShot-v1.2.2-windows-x64-portable.zip -Algorithm SHA256
+Get-FileHash .\AccuShot-v1.2.3-windows-x64-portable.zip -Algorithm SHA256
 Get-Content .\SHA256SUMS.txt
 ```
 
@@ -182,7 +182,7 @@ Get-Content .\SHA256SUMS.txt
 | 构建工具 | CMake 3.20+、Ninja |
 | 界面库 | Qt 6 的 MSVC x64 套件，含 Core、Gui、Widgets、Svg、Network；当前验证版本为 6.11.1 |
 | 可选测试依赖 | Qt Test |
-| 可选本地 AI 插件 | 部分安装器需要 Python 3.12 和 Windows `py` 启动器，插件内另建运行环境 |
+| 可选本地 AI 插件 | 当前源码自动检测系统或 Conda 中的 CPython 3.12（64 位），支持手动选择；插件内另建运行环境，无需依赖 `py` 启动器 |
 
 ### 编译与运行
 
@@ -208,6 +208,12 @@ if ($LASTEXITCODE) { throw 'Qt dependency deployment failed' }
 ```
 
 仓库也提供 [Windows 构建脚本](scripts/build_windows.ps1)，其中 Qt、CMake 和 Ninja 路径按维护者本机布局设置；使用前请核对。普通构建不下载 AI 模型，插件可在启动后按需安装。
+
+当前源码的插件安装器随构建附带 [7-Zip 命令行组件](tools/7zip/README.md)，统一解压 ZIP / 7z。插件页支持重新检测、选择 Python 或 Conda 安装目录；自动发现使用 Windows Python 注册信息、PATH 和 Conda 环境列表。Conda 解释器通过 `conda run` 启动，依赖只装入各插件的私有 venv。保留选定的基础 Python / Conda 环境；删除基础环境或将插件目录复制到另一台电脑后，应重新安装插件。安装日志位于程序旁的 `plugins/<插件ID>-install.log`，程序目录需可写。
+
+没有可用 Python 时，插件页的「安装 Python 3.12」会下载并校验官方 CPython 3.12.10 x64 传统安装包，为当前用户安装 Python 和 pip；不修改 PATH、不另装 py 启动器、不自动重启系统。官方安装窗口显示进度并可取消，完成后自动重新检测，确认可用后即可安装插件。已有可用系统/Conda 环境时该按钮禁用，优先复用已有环境。Python 安装日志在应用本地数据目录的 `logs/python-setup.log`。
+
+v1.2.3 正式附件已包含这些安装改进；源码构建和便携包需保留 `tools/7zip/` 下的程序及许可文件。
 
 ### 代码入口
 

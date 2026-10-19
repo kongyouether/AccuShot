@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.20)
 
-project(accushot VERSION 1.2.2 LANGUAGES CXX)
+project(accushot VERSION 1.2.3 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -65,6 +65,8 @@ endif()
 # MSVC 编译参数调优 (UTF-8 字符集与快速编译)
 set(ACCUSHOT_EXECUTABLE_NAME "AccuShot" CACHE STRING "Executable name for isolated local validation")
 set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME "${ACCUSHOT_EXECUTABLE_NAME}")
+include(scripts/bundle_plugin_tools.cmake)
+accushot_bundle_plugin_tools(${PROJECT_NAME} "${CMAKE_CURRENT_SOURCE_DIR}")
 if(MSVC)
     target_compile_options(${PROJECT_NAME} PRIVATE /utf-8 /permissive- /W4 /Zi)
     target_link_options(${PROJECT_NAME} PRIVATE /DEBUG:FULL)

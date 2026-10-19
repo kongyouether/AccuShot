@@ -51,6 +51,8 @@ def build_and_package():
         except Exception as e:
             print(f"  [提示] 清理发布目录跳过受锁文件: {e}")
     os.makedirs(dist_accushot, exist_ok=True)
+    shutil.copytree(os.path.join(root_dir, "tools", "7zip"),
+                    os.path.join(dist_accushot, "tools", "7zip"), dirs_exist_ok=True)
 
     release_exe = os.path.join(build_dir, "AccuShot.exe")
     dst_exe = os.path.join(dist_accushot, "AccuShot.exe")

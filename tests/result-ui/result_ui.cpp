@@ -352,6 +352,92 @@ private slots:
         QCOMPARE(engine->currentData().toString(), QString("WindowsMedia"));
         QCOMPARE(dialog.findChild<QPlainTextEdit*>("sourceText")->toPlainText(), result.fullText);
     }
+    void pluginPythonSelection() {
+        const auto python = qEnvironmentVariable("ACCUSHOT_TEST_SYSTEM_PYTHON");
+        QVERIFY2(!python.isEmpty(), "Set ACCUSHOT_TEST_SYSTEM_PYTHON for this focused test");
+        auto& manager = PluginManager::instance();
+        auto cfg=QSettings(); const auto saved=cfg.value("plugins/pythonRuntime");
+        const auto restore=qScopeGuard([&]{
+            if(saved.isValid()) cfg.setValue("plugins/pythonRuntime",saved);
+            else cfg.remove("plugins/pythonRuntime");
+        });
+        int ticks=0; QTimer heartbeat; heartbeat.setInterval(10);
+        connect(&heartbeat,&QTimer::timeout,this,[&]{++ticks;}); heartbeat.start();
+        manager.detectPython(python);
+        QVERIFY(manager.pythonDetectionRunning());
+        QTRY_VERIFY_WITH_TIMEOUT(!manager.pythonDetectionRunning(),20000);
+        QVERIFY(ticks>0); QVERIFY(manager.selectedPython()>=0);
+        QCOMPARE(manager.pythonRuntimes()[manager.selectedPython()].executable,PythonDiscovery::normalized(python));
+        QVERIFY(!cfg.value("plugins/pythonRuntime").toByteArray().isEmpty());
+        PluginMarketDialog dialog; dialog.resize(1000,700); dialog.show(); QTest::qWait(50);
+        auto* choice=dialog.findChild<QComboBox*>("pluginPythonChoice"); QVERIFY(choice);
+        auto* installPython=dialog.findChild<QPushButton*>("installPluginPython"); QVERIFY(installPython);
+        QVERIFY(!installPython->isEnabled());
+        manager.installPythonRuntime(); QVERIFY(!manager.pythonInstallRunning());
+        QCOMPARE(choice->currentIndex(),manager.selectedPython());
+        const auto evidence=qEnvironmentVariable("ACCUSHOT_PLUGIN_EVIDENCE");
+        if(!evidence.isEmpty()) QVERIFY(dialog.grab().save(evidence+"/python-plugin-page.png"));
+        manager.detectPython("Z:/absent-python.exe");
+        QTRY_VERIFY_WITH_TIMEOUT(!manager.pythonDetectionRunning(),20000);
+        QCOMPARE(manager.selectedPython(),-1);
+        QVERIFY(manager.pythonMessage().contains("未找到"));
+        QVERIFY(installPython->isEnabled());
+        if(!evidence.isEmpty()) QVERIFY(dialog.grab().save(evidence+"/python-missing-install.png"));
+        // A failed manual selection does not overwrite the last working preference.
+        QVERIFY(!cfg.value("plugins/pythonRuntime").toByteArray().isEmpty());
+        manager.detectPython(python);
+        QTRY_VERIFY_WITH_TIMEOUT(!manager.pythonDetectionRunning(),20000);
+    }
+    void pythonInstallCompletionRechecksEnvironment() {
+        auto& manager=PluginManager::instance();
+        auto cfg=QSettings();const auto saved=cfg.value("plugins/pythonRuntime");
+        const auto restore=qScopeGuard([&]{if(saved.isValid())cfg.setValue("plugins/pythonRuntime",saved);else cfg.remove("plugins/pythonRuntime");});
+        cfg.setValue("plugins/pythonRuntime",QJsonDocument(QJsonObject{{"executable","Z:/removed-python.exe"}}).toJson());
+        auto* installer=manager.findChild<PythonInstaller*>();QVERIFY(installer);
+        // Simulate installer completion only; production discovery still runs for real.
+        QVERIFY(QMetaObject::invokeMethod(installer,"finished",Qt::DirectConnection,Q_ARG(bool,true)));
+        QVERIFY(manager.pythonDetectionRunning());
+        QTRY_VERIFY_WITH_TIMEOUT(!manager.pythonDetectionRunning(),65000);
+        QVERIFY(manager.selectedPython()>=0);
+        const auto selected=manager.pythonRuntimes()[manager.selectedPython()];
+        QVERIFY(selected.valid());QVERIFY(QFileInfo::exists(selected.executable));
+        QCOMPARE(PythonRuntime::fromJson(QJsonDocument::fromJson(cfg.value("plugins/pythonRuntime").toByteArray()).object()).executable,selected.executable);
+    }
+    void condaPluginInstallAndRun() {
+        const auto conda=qEnvironmentVariable("ACCUSHOT_TEST_CONDA_ROOT");
+        QVERIFY2(!conda.isEmpty(), "Set ACCUSHOT_TEST_CONDA_ROOT for this real installation test");
+        auto& manager=PluginManager::instance();
+        const QString id="latex-ocr-engine", root=LocalPlugin::directory(id);
+        QVERIFY2(!QDir(root).exists(), "Use an isolated test build without this plugin");
+        auto cfg=QSettings();const auto saved=cfg.value("plugins/pythonRuntime");
+        const auto restore=qScopeGuard([&]{
+            if(saved.isValid())cfg.setValue("plugins/pythonRuntime",saved);else cfg.remove("plugins/pythonRuntime");
+        });
+        manager.detectPython(conda);
+        QTRY_VERIFY_WITH_TIMEOUT(!manager.pythonDetectionRunning(),60000);
+        QVERIFY(manager.selectedPython()>=0);
+        QVERIFY(!manager.pythonRuntimes()[manager.selectedPython()].conda.isEmpty());
+        manager.installPlugin(id);
+        QTRY_VERIFY_WITH_TIMEOUT(manager.pluginInfo(id).status==PluginStatus::Installed
+            ||manager.pluginInfo(id).status==PluginStatus::Failed,240000);
+        const auto info=manager.pluginInfo(id);
+        QVERIFY2(info.status==PluginStatus::Installed,qPrintable(info.statusMessage));
+        QVERIFY(LocalPlugin::ready(id));
+        QTemporaryDir sample; QImage image(360,100,QImage::Format_RGB32);image.fill(Qt::white);
+        {QPainter p(&image);p.setPen(Qt::black);p.setFont(QFont("Times New Roman",32));p.drawText(image.rect(),Qt::AlignCenter,"x + y = 2");}
+        const auto path=sample.filePath("formula.png");QVERIFY(image.save(path));
+        const auto result=LocalPlugin::run(id,{{"image",path}});
+        QVERIFY2(result["success"].toBool(),qPrintable(QJsonDocument(result).toJson()));
+        qInfo().noquote()<<QJsonDocument(result).toJson(QJsonDocument::Compact);
+        // Keep isolated test models as evidence; do not touch the user's plugin directory.
+        QFile runtimeFile(root+"/runtime.json"); QVERIFY(runtimeFile.open(QIODevice::ReadOnly));
+        const auto original=runtimeFile.readAll();runtimeFile.close();
+        auto missing=QJsonDocument::fromJson(original).object();missing["executable"]="Z:/missing-python.exe";
+        QVERIFY(runtimeFile.open(QIODevice::WriteOnly));runtimeFile.write(QJsonDocument(missing).toJson());runtimeFile.close();
+        const auto restoreRuntime=qScopeGuard([&]{if(runtimeFile.open(QIODevice::WriteOnly)){runtimeFile.write(original);runtimeFile.close();}});
+        QVERIFY(!LocalPlugin::ready(id));
+        QVERIFY(LocalPlugin::run(id,{{"image",path}})["error"].toString().contains("环境已失效"));
+    }
     void officialRapidOcrArchive() {
         const QString archive = qEnvironmentVariable("ACCUSHOT_RAPIDOCR_ARCHIVE");
         if (archive.isEmpty()) QSKIP("Separate official engine package verification");

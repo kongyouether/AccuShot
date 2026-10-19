@@ -1,6 +1,8 @@
 #pragma once
 
 #include "plugin_types.h"
+#include "python_runtime.h"
+#include "python_installer.h"
 #include <QObject>
 #include <QList>
 #include <QMap>
@@ -40,8 +42,19 @@ public:
     // 获取插件根目录绝对路径 (如 plugins/)
     QString pluginRootDir() const;
 
+    void detectPython(const QString& manualPath = {});
+    void selectPython(int index);
+    QList<PythonRuntime> pythonRuntimes() const { return m_pythonRuntimes; }
+    int selectedPython() const { return m_selectedPython; }
+    bool pythonDetectionRunning() const { return m_detectingPython; }
+    QString pythonMessage() const { return m_pythonMessage; }
+    void installPythonRuntime();
+    bool pythonInstallRunning() const { return m_pythonInstaller->busy(); }
+    QString pythonInstallMessage() const;
+
 signals:
     void pluginsRefreshed();
+    void pythonRuntimesChanged();
     void pluginStatusChanged(const QString& id, PluginStatus status, const QString& message);
     void pluginProgressChanged(const QString& id, int percent, qint64 downloaded, qint64 total, double speedMBs);
 
@@ -51,7 +64,9 @@ private:
 
     void initCatalog();
     void updateSinglePluginStatus(PluginInfo& info);
-    bool extractZipArchive(const QString& zipPath, const QString& destDir);
+    bool extractZipArchive(const QString& zipPath, const QString& destDir, QString& error);
+    void installPythonPlugin(const QString& id, const PythonRuntime& runtime);
+    void failInstall(const QString& id, const QString& message);
 
     QList<PluginInfo> m_plugins;
     QMap<QString, QNetworkReply*> m_activeReplies;
@@ -59,4 +74,12 @@ private:
     QMap<QString, QElapsedTimer> m_speedTimers;
     QMap<QString, qint64> m_lastBytes;
     std::unique_ptr<QNetworkAccessManager> m_nam;
+    PythonInstaller* m_pythonInstaller = nullptr;
+    bool m_pythonDetectionComplete = false;
+    bool m_selectPythonAfterInstall = false;
+    QList<PythonRuntime> m_pythonRuntimes;
+    int m_selectedPython = -1;
+    bool m_detectingPython = false;
+    QString m_pythonMessage = "尚未检测 Python 3.12（64 位）";
+    QStringList m_pendingPythonInstalls;
 };

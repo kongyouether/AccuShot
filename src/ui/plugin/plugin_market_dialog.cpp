@@ -7,6 +7,9 @@
 #include <QMessageBox>
 #include <QGraphicsDropShadowEffect>
 #include <QButtonGroup>
+#include <QComboBox>
+#include <QSignalBlocker>
+#include <QShowEvent>
 #include "../../core/theme_manager.h"
 #include "../toolbar/toolbar_icons.h"
 
@@ -254,6 +257,13 @@ PluginMarketDialog::PluginMarketDialog(QWidget* parent, bool embedded)
     PluginManager::instance().refreshAllStatus();
 }
 
+void PluginMarketDialog::showEvent(QShowEvent* event)
+{
+    QDialog::showEvent(event);
+    auto& manager = PluginManager::instance();
+    if (manager.pythonRuntimes().isEmpty() && !manager.pythonDetectionRunning()) manager.detectPython();
+}
+
 void PluginMarketDialog::setupUi()
 {
     setStyleSheet(ThemeManager::instance().getResultDialogStyle());
@@ -283,19 +293,19 @@ void PluginMarketDialog::setupUi()
     });
     topMenuLayout->addWidget(m_refreshBtn);
 
-    auto* installZipBtn = new QPushButton("本地导入 ZIP", this);
+    auto* installZipBtn = new QPushButton("导入 RapidOCR 包", this);
     installZipBtn->setCursor(Qt::PointingHandCursor);
-    installZipBtn->setToolTip("从本地选择下载好的离线扩展压缩包 (.zip) 一键自动导入部署");
+    installZipBtn->setToolTip("导入 RapidOCR 离线扩展包（ZIP / 7z）");
 
     connect(installZipBtn, &QPushButton::clicked, this, [this]() {
         QString zipPath = QFileDialog::getOpenFileName(
             this,
-            "选择离线插件扩展包 (.zip)",
+            "选择 RapidOCR 扩展包",
             "",
-            "扩展包 (*.zip);;所有文件 (*.*)"
+            "扩展包 (*.zip *.7z)"
         );
         if (!zipPath.isEmpty()) {
-            PluginManager::instance().installFromLocalZip(zipPath);
+            PluginManager::instance().installFromLocalZip(zipPath, "rapidocr-engine");
         }
     });
     topMenuLayout->addWidget(installZipBtn);
@@ -322,6 +332,62 @@ void PluginMarketDialog::setupUi()
 
 
     mainLayout->addLayout(topMenuLayout);
+    auto* pythonRow = new QHBoxLayout();
+    auto* pythonChoice = new QComboBox(this);
+    pythonChoice->setObjectName("pluginPythonChoice");
+    pythonChoice->setMinimumWidth(200);
+    pythonChoice->setSizeAdjustPolicy(QComboBox::AdjustToMinimumContentsLengthWithIcon);
+    pythonChoice->setMinimumContentsLength(24);
+    auto* detectPython = new QPushButton("重新检测", this);
+    detectPython->setObjectName("detectPluginPython");
+    auto* choosePython = new QPushButton("选择 Python", this);
+    auto* chooseConda = new QPushButton("选择 Conda", this);
+    auto* pythonHelp = new QPushButton("安装 Python 3.12", this);
+    pythonHelp->setObjectName("installPluginPython");
+    pythonHelp->setToolTip("未找到可用环境时，点击下载官方 Python 3.12 x64 并安装到当前用户；包含 pip，不修改 PATH");
+    pythonRow->addWidget(pythonChoice, 1);
+    pythonRow->addWidget(detectPython); pythonRow->addWidget(choosePython);
+    pythonRow->addWidget(chooseConda); pythonRow->addWidget(pythonHelp);
+    mainLayout->addLayout(pythonRow);
+    auto* pythonStatus = new QLabel(this);
+    pythonStatus->setObjectName("pythonInstallStatus");
+    pythonStatus->setWordWrap(true);
+    mainLayout->addWidget(pythonStatus);
+    auto& manager = PluginManager::instance();
+    const auto updatePython = [pythonChoice, detectPython, choosePython, chooseConda, pythonHelp, pythonStatus] {
+        auto& mgr = PluginManager::instance();
+        const QSignalBlocker blocker(pythonChoice);
+        pythonChoice->clear();
+        for (const auto& runtime : mgr.pythonRuntimes()) {
+            pythonChoice->addItem(runtime.label() + " · " + QDir::toNativeSeparators(runtime.executable));
+            pythonChoice->setItemData(pythonChoice->count()-1, runtime.executable, Qt::ToolTipRole);
+        }
+        pythonChoice->setPlaceholderText(mgr.pythonDetectionRunning() ? "正在检测 Python…" : "请选择 Python 3.12（64 位）");
+        pythonChoice->setCurrentIndex(mgr.selectedPython());
+        pythonChoice->setToolTip(mgr.pythonMessage());
+        const bool busy = mgr.pythonDetectionRunning() || mgr.pythonInstallRunning();
+        for (auto* button : {detectPython, choosePython, chooseConda}) button->setEnabled(!busy);
+        pythonChoice->setEnabled(!busy);
+        pythonHelp->setEnabled(!busy && mgr.pythonRuntimes().isEmpty());
+        pythonHelp->setText(mgr.pythonInstallRunning() ? "正在安装 Python…" : "安装 Python 3.12");
+        pythonStatus->setText(mgr.pythonInstallMessage());
+        if (pythonStatus->text().isEmpty() && !busy && mgr.pythonRuntimes().isEmpty())
+            pythonStatus->setText("未找到 Python 3.12（64 位），可选择已有环境或点击安装 Python 3.12。");
+        pythonStatus->setVisible(!pythonStatus->text().isEmpty());
+    };
+    connect(&manager, &PluginManager::pythonRuntimesChanged, this, updatePython);
+    connect(pythonChoice, &QComboBox::activated, &manager, &PluginManager::selectPython);
+    connect(detectPython, &QPushButton::clicked, this, [&manager] { manager.detectPython(); });
+    connect(choosePython, &QPushButton::clicked, this, [this, &manager] {
+        const auto path = QFileDialog::getOpenFileName(this, "选择 Python 3.12（64 位）", {}, "Python (python.exe)");
+        if (!path.isEmpty()) manager.detectPython(path);
+    });
+    connect(chooseConda, &QPushButton::clicked, this, [this, &manager] {
+        const auto path = QFileDialog::getExistingDirectory(this, "选择 Conda 安装目录");
+        if (!path.isEmpty()) manager.detectPython(path);
+    });
+    connect(pythonHelp, &QPushButton::clicked, &manager, &PluginManager::installPythonRuntime);
+    updatePython();
     mainLayout->addWidget(m_searchEdit);
 
     // Word 风格细分割线

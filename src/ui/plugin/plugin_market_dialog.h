@@ -51,6 +51,9 @@ public:
     explicit PluginMarketDialog(QWidget* parent = nullptr, bool embedded = false);
     ~PluginMarketDialog() override = default;
 
+protected:
+    void showEvent(QShowEvent* event) override;
+
 private:
     void setupUi();
     bool m_embedded = false;
