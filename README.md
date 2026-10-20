@@ -13,7 +13,6 @@
 ![C++20](https://img.shields.io/badge/C%2B%2B-20-006B6C?style=flat-square)
 ![Qt 6](https://img.shields.io/badge/Qt-6-006B6C?style=flat-square)
 [![MIT](https://img.shields.io/badge/License-MIT-006B6C?style=flat-square)](LICENSE)
-![开发中](https://img.shields.io/badge/Status-开发中-E6EEE8?style=flat-square)
 
 [下载便携版](#download) · [功能亮点](#features) · [快速上手](#quick-start) · [快捷键](#shortcuts) · [源码构建](#build) · [参与贡献](#contributing)
 
@@ -22,7 +21,7 @@
   <img src="docs/images/readme/workbench-light.png" width="1000" alt="AccuShot 文字识别与翻译工作台：左侧原图，右侧原文和译文区域">
 </picture>
 
-<sub>原生 Qt 界面，使用示例文本展示。支持浅色、深色及跟随系统主题。</sub>
+<sub>原生 Qt 界面，支持浅色、深色及跟随系统主题。</sub>
 
 </div>
 
@@ -38,13 +37,9 @@
 2. 双击 `AccuShot.exe`，在任务栏右下角托盘找到程序。
 3. 按 `F1` 开始截图；右键托盘可打开设置或退出。
 
-便携包包含主程序、Qt 与 VC++ 运行库、中文使用说明及第三方许可材料。基础截图、标注和贴图不需要另装 Qt、Visual Studio 或 Python；请保留 EXE 旁的 DLL 和插件目录，不要只复制 EXE。
+便携包已包含主程序、Qt 与 VC++ 运行库和解压组件，解压即可使用截图、标注和贴图。OCR、翻译、公式和 Markdown 插件可在设置中按需安装，也可从 [Release](https://github.com/kongyouether/AccuShot/releases/tag/v1.2.3) 下载对应插件包。
 
-主程序便携包不内置 AI 模型，可在设置中按需安装；Release 另提供本地插件模型预置包、RapidOCR 原包及在线适配器包，使用方法见 [Release 正文](https://github.com/kongyouether/AccuShot/releases/tag/v1.2.3)。没有 Python 时可在插件页点击安装，7za 解压组件已内置。模型预置包仍需联网安装 Python 依赖；部分本地插件需要 Python 3.12，在线能力需要自行配置账号。当前正式发布包在 Windows 11 x64 上完成构建和运行依赖验证，尚未在另一台干净电脑上完成全功能验收。
-
-> “便携”表示免安装、解压运行。设置仍保存在 Windows 当前用户配置中，日志位于 `%LOCALAPPDATA%\AccuShot\AccuShot\logs`；首次运行默认开启自启动，可在设置中关闭。更新前请从托盘退出旧版本。
-
-> 从 v1.2.0 升级时，请先记录需要保留的设置、关闭旧版自启动并退出。从 v1.2.1 起不再自动读取旧品牌配置，需要重新配置账号；已经使用 AccuShot 标识的设置与凭据继续保留。详见[项目标识与升级说明](docs/brand-identity.md)。
+设置保存在 Windows 当前用户配置中。首次运行默认开启开机自启动，可在设置中调整。
 
 <details>
 <summary>核对下载文件的 SHA256</summary>
@@ -68,7 +63,7 @@ Get-FileHash .\AccuShot-v1.2.3-windows-x64-portable.zip -Algorithm SHA256
 面对网页卡片、文档段落或层叠窗口，先让候选框找到范围，再用滚轮和微调确定边界。
 
 - **四种吸附模式**：窗口、元素与控件、图像轮廓，以及结合三者的智能融合（默认）。
-- **可见内容优先**：根据窗口层叠关系调整推荐次序；被遮挡、跨窗口的候选降级保留，仍可手动选择。
+- **可见内容优先**：根据窗口层叠关系推荐当前可见区域，也支持手动选择其他候选。
 - **滚轮切换大小，Tab 切换推荐**：从小块内容到完整窗口，再到全屏，保留不同层级的选择空间。
 - **Ctrl + 滚轮精细调整**：逐步扩大或缩小候选框，默认每档四边各移动 1 个逻辑像素，步长与快捷键可配置。
 - **随时自由框选**：直接拖拽确定选区，也可以在设置中关闭自动吸附。
@@ -79,10 +74,9 @@ Get-FileHash .\AccuShot-v1.2.3-windows-x64-portable.zip -Algorithm SHA256
 
 - 支持图片缩放、识别框显示、原文编辑、合并段落、清除空格与复制。
 - 提供对照、仅原文、仅译文视图，按任务调整阅读空间。
-- 编辑原文后提示重新翻译，避免沿用已经失效的段落对应关系。
-- **原位屏幕翻译**可在截图原位置展示译文，按住 `Space` 临时查看原图。
-
-> 图文联动依赖 OCR 引擎提供文字坐标；在线纯文本识别不提供图片定位。译文联动按段落对应，不是逐词对齐。原位翻译针对单次截图，不会持续监听屏幕。
+- 编辑原文后可重新翻译，更新段落对应关系。
+- 使用提供文字坐标的 OCR 引擎时，可联动原图定位；原文与译文按段落对应。
+- **原位屏幕翻译**将当前截图的译文显示在原位置，按住 `Space` 临时查看原图。
 
 ### 从截图直接进入笔记与写作
 
@@ -111,7 +105,7 @@ Get-FileHash .\AccuShot-v1.2.3-windows-x64-portable.zip -Algorithm SHA256
 | 公式识别 | RapidLaTeXOCR、Pix2Text MFR、PP-FormulaNet 插件 | 配置的公式或视觉服务 |
 | Markdown | RapidOCR 基础文本；Pix2Text 页面解析（实验） | 兼容视觉服务；Mathpix 适配插件 |
 
-模型按需安装，基础截图、标注和贴图不需要安装 AI 模型。部分本地插件使用独立 Python 环境；安装可能需要下载运行依赖和模型，准备完成后可在本地推理。
+本地插件各自使用独立环境，安装后在本机完成识别与翻译。
 
 <details>
 <summary><strong>查看插件管理与深浅主题</strong></summary>
@@ -120,15 +114,11 @@ Get-FileHash .\AccuShot-v1.2.3-windows-x64-portable.zip -Algorithm SHA256
 |---|---|
 | ![浅色插件管理](docs/images/readme/plugins-light.png) | ![深色插件管理](docs/images/readme/plugins-dark.png) |
 
-截图来自实际 Windows 界面，展示未安装插件时的状态。
-
 </details>
 
 <a id="quick-start"></a>
 
 ## 快速上手
-
-可直接使用上方的 [Windows x64 便携版](#download)，也可按下方步骤从源码构建。运行目录需同时包含 Qt 动态库和平台插件，不能只复制一个 EXE。
 
 1. **启动 `AccuShot.exe`**，程序常驻系统托盘；右键托盘图标进入设置。
 2. **按 `F1` 开始截图**，移动鼠标查看候选框，用滚轮切换大小，或直接拖拽框选。
@@ -136,14 +126,24 @@ Get-FileHash .\AccuShot-v1.2.3-windows-x64-portable.zip -Algorithm SHA256
 4. **配置识别能力**：Windows OCR 为系统内置方案；其他本地方案先在「设置 → 插件与模型」安装所需插件，再到文字识别、翻译、公式识别或 Markdown 页选择。
 5. **需要在线处理时**，先在「设置 → 在线账号」配置服务地址和密钥，再在对应功能页选择模型。图片任务还需服务与模型支持图片输入。
 
-新配置默认使用「智能融合」，结合窗口、元素与图像轮廓生成候选框。已经保存的吸附模式会继续保留，可在「设置 → 截图与标注」中切换。
+默认使用「智能融合」，结合窗口、元素与图像轮廓生成候选框，可在「设置 → 截图与标注」中切换模式。
+
+### 安装插件
+
+在「设置 → 插件与模型」中选择需要的功能并点击安装。程序内置 ZIP / 7z 解压组件，自动完成下载与部署。
+
+- **RapidOCR**：直接安装，或下载 Release 中的 RapidOCR 包，通过「导入 RapidOCR 包」安装。
+- **Python 本地插件**：自动检测系统及 Conda 中的 CPython 3.12 x64，也可手动选择环境。没有可用环境时，点击「安装 Python 3.12」安装官方 Python 与 pip，完成后自动重新检测。
+- **模型预置包**：将 ZIP 内的 `plugins` 目录合并到主程序目录，再在插件页点击对应插件「安装」。此步骤会联网安装 Python 依赖并验证模型。
+- **在线适配器**：在插件页启用后，到「在线账号」配置服务。
+
+Python 插件依赖所选的基础 Python / Conda 环境，请保留该环境。插件安装日志位于 `plugins/<插件ID>-install.log`，应用日志位于 `%LOCALAPPDATA%\AccuShot\AccuShot\logs`。
 
 ### 数据如何处理
 
 - 基础截图、标注、贴图，以及已安装的本地识别/翻译方案在本机处理内容。
-- 选择在线方案后，执行相应功能会向所配置的服务发送文字或图片；服务可能收费，具体以供应商规则为准。
-- 在线账号的 API 密钥通过 Windows 凭据管理器保存。模型、账号和密钥不随源码提供。
-- 本地插件安装阶段可能联网下载；“本地推理”不等于“安装过程无需联网”。
+- 在线方案将文字或图片发送到所配置的服务，费用按供应商规则计算。
+- 在线账号的 API 密钥通过 Windows 凭据管理器保存。
 
 <a id="shortcuts"></a>
 
@@ -166,7 +166,7 @@ Get-FileHash .\AccuShot-v1.2.3-windows-x64-portable.zip -Algorithm SHA256
 | 贴图中 | 识别 / 复制 / 保存 | `Ctrl + O` / `Ctrl + C` / `Ctrl + S` |
 | 贴图中 | 关闭 | `Esc` |
 
-普通滚轮按面积切换候选，最大一级为整个截图桌面；多显示器环境中指虚拟桌面范围。`Ctrl + 滚轮` 调整的是当前框的边缘，两者用途不同。
+普通滚轮按面积切换候选，最大一级为整个截图桌面；多显示器环境中指虚拟桌面范围。`Ctrl + 滚轮` 调整当前框的边缘。
 
 <a id="build"></a>
 
@@ -176,12 +176,12 @@ Get-FileHash .\AccuShot-v1.2.3-windows-x64-portable.zip -Algorithm SHA256
 
 | 依赖 | 要求 |
 |---|---|
-| 平台 | Windows x64；当前本机验证环境为 Windows 11 |
+| 平台 | Windows x64 |
 | 编译器 | Visual Studio 2022 / Build Tools，安装 C++ 桌面开发工具和 Windows SDK |
 | 构建工具 | CMake 3.20+、Ninja |
-| 界面库 | Qt 6 的 MSVC x64 套件，含 Core、Gui、Widgets、Svg、Network；当前验证版本为 6.11.1 |
+| 界面库 | Qt 6 的 MSVC x64 套件，含 Core、Gui、Widgets、Svg、Network；发布构建使用 6.11.1 |
 | 可选测试依赖 | Qt Test |
-| 可选本地 AI 插件 | 当前源码自动检测系统或 Conda 中的 CPython 3.12（64 位），支持手动选择；插件内另建运行环境，无需依赖 `py` 启动器 |
+| 可选本地 AI 插件 | CPython 3.12 x64，支持系统 Python 与 Conda 环境 |
 
 ### 编译与运行
 
@@ -206,13 +206,7 @@ if ($LASTEXITCODE) { throw 'Qt dependency deployment failed' }
 ..\AccuShot-build\release\AccuShot.exe
 ```
 
-仓库也提供 [Windows 构建脚本](scripts/build_windows.ps1)，其中 Qt、CMake 和 Ninja 路径按维护者本机布局设置；使用前请核对。普通构建不下载 AI 模型，插件可在启动后按需安装。
-
-当前源码的插件安装器随构建附带 [7-Zip 命令行组件](tools/7zip/README.md)，统一解压 ZIP / 7z。插件页支持重新检测、选择 Python 或 Conda 安装目录；自动发现使用 Windows Python 注册信息、PATH 和 Conda 环境列表。Conda 解释器通过 `conda run` 启动，依赖只装入各插件的私有 venv。保留选定的基础 Python / Conda 环境；删除基础环境或将插件目录复制到另一台电脑后，应重新安装插件。安装日志位于程序旁的 `plugins/<插件ID>-install.log`，程序目录需可写。
-
-没有可用 Python 时，插件页的「安装 Python 3.12」会下载并校验官方 CPython 3.12.10 x64 传统安装包，为当前用户安装 Python 和 pip；不修改 PATH、不另装 py 启动器、不自动重启系统。官方安装窗口显示进度并可取消，完成后自动重新检测，确认可用后即可安装插件。已有可用系统/Conda 环境时该按钮禁用，优先复用已有环境。Python 安装日志在应用本地数据目录的 `logs/python-setup.log`。
-
-v1.2.3 正式附件已包含这些安装改进；源码构建和便携包需保留 `tools/7zip/` 下的程序及许可文件。
+也可使用 [Windows 构建脚本](scripts/build_windows.ps1)，将脚本中的 Qt、CMake 和 Ninja 路径改为本机安装位置即可。构建产物包含 [7-Zip 命令行组件](tools/7zip/README.md)；分发时保留 `tools/7zip/` 下的程序及许可文件。
 
 ### 代码入口
 
@@ -227,18 +221,7 @@ tests/               核心回归、Qt 界面及原生窗口测试
 docs/                项目标识说明与 README 展示图片
 ```
 
-详细测试入口见 [开发与贡献](CONTRIBUTING.md)。部分原生测试会操作窗口、剪贴板或调用模型，应按测试说明选择执行范围。
-
-## 当前进展
-
-项目持续开发中。智能选框、图文联动和本地插件已有定向验证；完整桌面体验仍在迭代。
-
-- **智能选框**：可见内容优先、保留遮挡候选、全屏末级及滚轮切换已有回归；复杂自绘界面可能缺少控件信息，仍可自由框选。
-- **Markdown**：RapidOCR 方案只提取基础文字，不恢复表格结构；Pix2Text 页面解析为实验功能，复杂排版、代码和公式需人工核对。
-- **显示环境**：已有单屏 125% 原生验证及部分高缩放布局检查，混合 DPI 多屏尚未完成全面验收。
-- **外部服务**：实际能力受模型、接口、网络及账号配置影响，各供应商未全部完成端到端验证。
-
-开发方式、测试入口与提交说明见 [贡献指南](CONTRIBUTING.md)。
+测试入口、开发方式与提交说明见 [贡献指南](CONTRIBUTING.md)。
 
 <a id="contributing"></a>
 
@@ -254,4 +237,4 @@ AccuShot 在 [Evan](https://github.com/duyuanfu/evan-ocr) 工程基础上继续�
 
 感谢 Qt 以及 RapidOCR、Argos Translate、RapidLaTeXOCR、Pix2Text、PaddleOCR 等项目提供的基础能力。
 
-本仓库代码采用 [MIT License](LICENSE)。第三方依赖、插件和模型权重遵循各自的许可证；本仓库的 MIT 声明不替代它们的许可条款。
+本仓库代码采用 [MIT License](LICENSE)。第三方依赖、插件和模型权重遵循各自的许可证。
