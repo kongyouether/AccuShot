@@ -32,7 +32,7 @@
 
 **[下载 AccuShot v1.2.3 · Windows x64 便携版](https://github.com/kongyouether/AccuShot/releases/download/v1.2.3/AccuShot-v1.2.3-windows-x64-portable.zip)**
 
-[查看 Release 与更新说明](https://github.com/kongyouether/AccuShot/releases/tag/v1.2.3) · [下载 SHA256 校验文件](https://github.com/kongyouether/AccuShot/releases/download/v1.2.3/SHA256SUMS.txt)
+[查看 Release、插件安装说明与 SHA256 校验值](https://github.com/kongyouether/AccuShot/releases/tag/v1.2.3)
 
 1. 下载 ZIP，**完整解压**到有写入权限的目录。
 2. 双击 `AccuShot.exe`，在任务栏右下角托盘找到程序。
@@ -40,7 +40,7 @@
 
 便携包包含主程序、Qt 与 VC++ 运行库、中文使用说明及第三方许可材料。基础截图、标注和贴图不需要另装 Qt、Visual Studio 或 Python；请保留 EXE 旁的 DLL 和插件目录，不要只复制 EXE。
 
-主程序便携包不内置 AI 模型，可在设置中按需安装；Release 另提供全部本地插件的模型预置包、RapidOCR 原包及 Python / 7-Zip 安装材料，使用方法见 [附件说明](https://github.com/kongyouether/AccuShot/releases/download/v1.2.3/PLUGIN_ASSETS.md)。模型预置包仍需联网安装 Python 依赖；部分本地插件需要 Python 3.12，在线能力需要自行配置账号。当前正式发布包在 Windows 11 x64 上完成构建和运行依赖验证，尚未在另一台干净电脑上完成全功能验收。
+主程序便携包不内置 AI 模型，可在设置中按需安装；Release 另提供本地插件模型预置包、RapidOCR 原包及在线适配器包，使用方法见 [Release 正文](https://github.com/kongyouether/AccuShot/releases/tag/v1.2.3)。没有 Python 时可在插件页点击安装，7za 解压组件已内置。模型预置包仍需联网安装 Python 依赖；部分本地插件需要 Python 3.12，在线能力需要自行配置账号。当前正式发布包在 Windows 11 x64 上完成构建和运行依赖验证，尚未在另一台干净电脑上完成全功能验收。
 
 > “便携”表示免安装、解压运行。设置仍保存在 Windows 当前用户配置中，日志位于 `%LOCALAPPDATA%\AccuShot\AccuShot\logs`；首次运行默认开启自启动，可在设置中关闭。更新前请从托盘退出旧版本。
 
@@ -49,14 +49,13 @@
 <details>
 <summary>核对下载文件的 SHA256</summary>
 
-下载 ZIP 和 `SHA256SUMS.txt` 到同一文件夹，在 PowerShell 中执行：
+下载 ZIP 后，在 PowerShell 中执行：
 
 ```powershell
 Get-FileHash .\AccuShot-v1.2.3-windows-x64-portable.zip -Algorithm SHA256
-Get-Content .\SHA256SUMS.txt
 ```
 
-两处摘要应相同，大小写不影响比较。
+将输出与 Release 正文中“附件 SHA256 校验值”对应文件的摘要比较，大小写不影响比较。
 
 </details>
 
